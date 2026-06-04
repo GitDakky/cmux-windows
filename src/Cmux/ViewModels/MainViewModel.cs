@@ -341,8 +341,8 @@ public partial class MainViewModel : ObservableObject
 
                 if (prefs.IdleOnlyWhenAgentDetected)
                 {
-                    var pid = session.ProcessId;
-                    if (pid is not > 0 || AgentDetector.DetectFromProcessId(pid) == AgentType.None)
+                    if (session.ProcessId is not int pid || pid <= 0 ||
+                        AgentDetector.DetectFromProcessId(pid) == AgentType.None)
                         return false;
                 }
 
