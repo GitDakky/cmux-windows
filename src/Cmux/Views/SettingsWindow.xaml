@@ -714,6 +714,53 @@
                                      Style="{StaticResource SettingsTextBox}" Width="80"
                                      HorizontalAlignment="Left" ToolTip="Delete terminal captures older than this many days. Use 0 to keep forever." />
                         </Grid>
+
+                        <TextBlock Text="Agent notifications" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="{StaticResource ForegroundBrush}" Margin="0,16,0,10" />
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Windows toasts" Style="{StaticResource SectionLabel}" />
+                            <CheckBox x:Name="ToastNotificationsCheck" Grid.Column="1"
+                                      Style="{StaticResource SettingsCheck}"
+                                      Content="Show toast when agents need attention" />
+                        </Grid>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Toast focus" Style="{StaticResource SectionLabel}" />
+                            <CheckBox x:Name="ToastOnlyUnfocusedCheck" Grid.Column="1"
+                                      Style="{StaticResource SettingsCheck}"
+                                      Content="Only show toasts when cmux is in the background" />
+                        </Grid>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Taskbar flash" Style="{StaticResource SectionLabel}" />
+                            <CheckBox x:Name="TaskbarFlashCheck" Grid.Column="1"
+                                      Style="{StaticResource SettingsCheck}"
+                                      Content="Flash taskbar button on new notifications" />
+                        </Grid>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Flash focus" Style="{StaticResource SectionLabel}" />
+                            <CheckBox x:Name="FlashOnlyUnfocusedCheck" Grid.Column="1"
+                                      Style="{StaticResource SettingsCheck}"
+                                      Content="Only flash when cmux is in the background" />
+                        </Grid>
                     </StackPanel>
 
                     <!-- ═══ Keyboard Section ═══ -->

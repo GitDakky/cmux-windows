@@ -11,7 +11,7 @@ A dark, keyboard-first terminal multiplexer for Windows, inspired by tmux/cmux w
 | [docs/SETUP.md](docs/SETUP.md) | SDK, build, publish, platform notes |
 | [docs/config.example.json](docs/config.example.json) | Example settings (actual path: `%LOCALAPPDATA%\cmux\settings.json`) |
 
-**Current status (2026-06):** Feature-rich WPF multiplexer (ConPTY, splits, OSC notifications, CLI, session persistence). Requires **.NET 10 SDK** and **Windows** to build/run. See audit for gaps (taskbar flash, macOS cmux hooks/SSH, `.cmux-windows` config path).
+**Current status (2026-06):** Feature-rich WPF multiplexer (ConPTY, splits, OSC notifications, CLI, session persistence, taskbar flash). Requires **.NET 10 SDK** and **Windows** to build/run. Config saves to `%USERPROFILE%\.cmux-windows\config.json` (legacy `%LOCALAPPDATA%\cmux\settings.json` still loaded if present). See [docs/MANUAL-TEST-CHECKLIST.md](docs/MANUAL-TEST-CHECKLIST.md) for smoke tests.
 
 ---
 
@@ -183,6 +183,46 @@ Add `publish/cmux-cli` to `PATH` to use `cmux` globally.
 | `Ctrl+Shift+V` | Session vault |
 | `Ctrl+Alt+H` | Command history picker |
 | `Ctrl+,` | Settings |
+
+---
+
+## Configuration
+
+Settings are stored as JSON:
+
+| Path | Role |
+|------|------|
+| `%USERPROFILE%\.cmux-windows\config.json` | **Primary** (read/write after save) |
+| `%LOCALAPPDATA%\cmux\settings.json` | Legacy (read-only fallback if user file missing) |
+
+Example: [docs/config.example.json](docs/config.example.json). Open **Settings** (`Ctrl+,`) → **Behavior** for toast/taskbar notification toggles.
+
+---
+
+## Agent notification setup
+
+cmux-windows detects agent attention through:
+
+1. **OSC sequences** (Claude Code, Codex, and others that emit OSC 9/99/777)
+2. **`cmux notify`** CLI (named pipe to the running app)
+3. **Process heuristics** — child processes matching `claude`, `codex`, `cursor`, etc. (sidebar labels)
+
+### Claude Code / Codex hooks (PowerShell)
+
+Add to your session profile or agent hook script:
+
+```powershell
+# Notify cmux when a script needs attention (cmux CLI on PATH)
+cmux notify --title "Claude Code" --body "Waiting for your input"
+```
+
+Ensure the cmux app is running and `cmux.exe` is on `PATH` (publish CLI — see Build `.exe` on Windows).
+
+### In-app behaviour
+
+- Unread badges on workspace sidebar and notification panel (`Ctrl+I`)
+- `Ctrl+Shift+U` — jump to latest unread
+- Optional **Windows toast** and **taskbar flash** when cmux is in the background (Settings → Behavior)
 
 ---
 

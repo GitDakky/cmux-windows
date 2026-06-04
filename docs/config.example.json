@@ -31,6 +31,12 @@
     }
   ],
   "keyBindings": {},
+  "notifications": {
+    "enableToastNotifications": true,
+    "toastOnlyWhenUnfocused": true,
+    "enableTaskbarFlash": true,
+    "flashOnlyWhenUnfocused": true
+  },
   "agent": {
     "enabled": false
   }

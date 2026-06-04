@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -33,7 +34,7 @@ jobs:
   publish:
     runs-on: windows-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v4
@@ -43,11 +44,26 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Read version
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$proj = Get-Content src/Cmux/Cmux.csproj
+          $version = $proj.Project.PropertyGroup.Version | Select-Object -First 1
+          "version=$version" >> $env:GITHUB_OUTPUT
+
       - name: Publish WPF App
         run: dotnet publish src/Cmux/Cmux.csproj -c Release -r win-x64 --self-contained -o publish/app
 
       - name: Publish CLI
         run: dotnet publish src/Cmux.Cli/Cmux.Cli.csproj -c Release -r win-x64 --self-contained -o publish/cli
+
+      - name: Create release zip
+        shell: pwsh
+        run: |
+          $zip = "publish/cmux-windows-v${{ steps.version.outputs.version }}-win-x64.zip"
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Compress-Archive -Path publish/app, publish/cli -DestinationPath $zip
 
       - name: Upload App Artifact
         uses: actions/upload-artifact@v4
@@ -60,3 +76,9 @@ jobs:
         with:
           name: cmux-cli-windows-x64
           path: publish/cli/
+
+      - name: Upload Release Zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmux-windows-v${{ steps.version.outputs.version }}-win-x64
+          path: publish/cmux-windows-v${{ steps.version.outputs.version }}-win-x64.zip
