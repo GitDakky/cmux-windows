@@ -109,6 +109,58 @@ public class NotificationService
     }
 
     /// <summary>
+    /// Unread count for a workspace surface (tab).
+    /// </summary>
+    public int GetUnreadCountForSurface(string workspaceId, string surfaceId)
+    {
+        lock (_lock)
+        {
+            return _notifications.Count(n =>
+                n.WorkspaceId == workspaceId &&
+                n.SurfaceId == surfaceId &&
+                !n.IsRead);
+        }
+    }
+
+    /// <summary>
+    /// Whether a pane has unread notifications.
+    /// </summary>
+    public bool HasUnreadForPane(string workspaceId, string surfaceId, string paneId)
+    {
+        lock (_lock)
+        {
+            return _notifications.Any(n =>
+                n.WorkspaceId == workspaceId &&
+                n.SurfaceId == surfaceId &&
+                n.PaneId == paneId &&
+                !n.IsRead);
+        }
+    }
+
+    /// <summary>
+    /// Marks unread notifications for a pane as read.
+    /// </summary>
+    public void MarkPaneAsRead(string workspaceId, string surfaceId, string paneId)
+    {
+        var changed = false;
+        lock (_lock)
+        {
+            foreach (var n in _notifications.Where(n =>
+                         n.WorkspaceId == workspaceId &&
+                         n.SurfaceId == surfaceId &&
+                         n.PaneId == paneId &&
+                         !n.IsRead))
+            {
+                n.IsRead = true;
+                changed = true;
+            }
+        }
+
+        if (changed)
+            UnreadCountChanged?.Invoke();
+    }
+
+    /// <summary>
     /// Gets unread count for a specific workspace.
     /// </summary>
     public int GetUnreadCount(string workspaceId)

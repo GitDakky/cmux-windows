@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Cmux.Core.Config;
@@ -45,6 +46,7 @@ public partial class MainViewModel : ObservableObject
     private double _agentPanelWidth = 380;
 
     private readonly NotificationService _notificationService;
+    private readonly DispatcherTimer _idleAttentionTimer;
 
     public NotificationService NotificationService => _notificationService;
 
@@ -55,9 +57,17 @@ public partial class MainViewModel : ObservableObject
         {
             TotalUnreadCount = _notificationService.UnreadCount;
             UpdateWorkspaceNotificationCounts();
+            RefreshSurfaceUnreadStates();
         };
 
         _notificationService.NotificationAdded += HandleNotificationAttention;
+
+        _idleAttentionTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(10),
+        };
+        _idleAttentionTimer.Tick += (_, _) => CheckIdleAttention();
+        _idleAttentionTimer.Start();
 
         // Wire up the named pipe command handler
         if (App.PipeServer != null)
@@ -294,6 +304,72 @@ public partial class MainViewModel : ObservableObject
             ws.LatestNotificationText = _notificationService.GetLatestText(ws.Workspace.Id);
             ws.HasNotification = ws.UnreadNotificationCount > 0;
         }
+    }
+
+    private void RefreshSurfaceUnreadStates()
+    {
+        foreach (var ws in Workspaces)
+        {
+            foreach (var surface in ws.Surfaces)
+                surface.RefreshUnreadState();
+        }
+    }
+
+    private void CheckIdleAttention()
+    {
+        var prefs = SettingsService.Current.Notifications;
+        if (!prefs.EnableIdleDetection)
+            return;
+
+        var threshold = TimeSpan.FromSeconds(Math.Clamp(prefs.IdleAttentionSeconds, 15, 3600));
+        foreach (var paneId in PaneActivityTracker.GetIdlePaneIds(threshold))
+        {
+            if (!TryNotifyIdlePane(paneId, prefs))
+                continue;
+        }
+    }
+
+    private bool TryNotifyIdlePane(string paneId, NotificationSettings prefs)
+    {
+        foreach (var ws in Workspaces)
+        {
+            foreach (var surface in ws.Surfaces)
+            {
+                var session = surface.GetSession(paneId);
+                if (session == null)
+                    continue;
+
+                if (prefs.IdleOnlyWhenAgentDetected)
+                {
+                    var pid = session.ProcessId;
+                    if (pid is not > 0 || AgentDetector.DetectFromProcessId(pid) == AgentType.None)
+                        return false;
+                }
+
+                PaneActivityTracker.MarkIdleNotified(paneId);
+
+                var agentLabel = "Agent";
+                if (prefs.IdleOnlyWhenAgentDetected && session.ProcessId is int shellPid)
+                {
+                    var label = AgentDetector.GetLabel(AgentDetector.DetectFromProcessId(shellPid));
+                    if (!string.IsNullOrEmpty(label))
+                        agentLabel = label;
+                }
+
+                _notificationService.AddNotification(
+                    ws.Workspace.Id,
+                    surface.Surface.Id,
+                    paneId,
+                    agentLabel,
+                    "Idle",
+                    "No output for a while — agent may be waiting for input",
+                    NotificationSource.Cli);
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void SaveSession(double windowX, double windowY, double windowWidth, double windowHeight, bool isMaximized)

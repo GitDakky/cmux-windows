@@ -35,6 +35,9 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _isZoomed;
 
+    [ObservableProperty]
+    private bool _hasUnreadNotifications;
+
     public event Action<string>? WorkingDirectoryChanged;
 
     /// <summary>Gets the shell process PID from the focused pane session.</summary>
@@ -56,6 +59,9 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
         _name = surface.Name;
         _rootNode = surface.RootSplitNode;
         _focusedPaneId = surface.FocusedPaneId;
+
+        _notificationService.UnreadCountChanged += RefreshUnreadState;
+        RefreshUnreadState();
 
         // Wire daemon events for session persistence
         var daemon = App.DaemonClient;
@@ -96,6 +102,8 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
     private void OnDaemonRawOutput(string paneId, byte[] data)
     {
         if (!_daemonPanes.Contains(paneId)) return;
+        if (data.Length > 0)
+            PaneActivityTracker.RecordOutput(paneId);
         if (_sessions.TryGetValue(paneId, out var session))
             session.FeedOutput(data);
     }
@@ -496,8 +504,11 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
                 WorkingDirectoryChanged?.Invoke(dir);
         };
 
+        session.OutputReceived += () => PaneActivityTracker.RecordOutput(paneId);
+
         session.NotificationReceived += (title, subtitle, body) =>
         {
+            PaneActivityTracker.MarkIdleNotified(paneId);
             var source = NotificationSource.Osc9; // Default
             _notificationService.AddNotification(
                 _workspaceId, Surface.Id, paneId,
@@ -586,6 +597,8 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
             _sessions.Remove(paneId);
         }
 
+        PaneActivityTracker.Remove(paneId);
+
         Surface.PaneCustomNames.Remove(paneId);
         Surface.PaneSnapshots.Remove(paneId);
         _paneCommandHistory.Remove(paneId);
@@ -607,7 +620,14 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
     {
         FocusedPaneId = paneId;
         Surface.FocusedPaneId = paneId;
+        _notificationService.MarkPaneAsRead(_workspaceId, Surface.Id, paneId);
     }
+
+    public bool HasUnreadPane(string paneId) =>
+        _notificationService.HasUnreadForPane(_workspaceId, Surface.Id, paneId);
+
+    public void RefreshUnreadState() =>
+        HasUnreadNotifications = _notificationService.GetUnreadCountForSurface(_workspaceId, Surface.Id) > 0;
 
     [RelayCommand]
     public void FocusNextPane()
@@ -649,6 +669,7 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        _notificationService.UnreadCountChanged -= RefreshUnreadState;
         CapturePaneSnapshotsForPersistence();
 
         // Unwire daemon events

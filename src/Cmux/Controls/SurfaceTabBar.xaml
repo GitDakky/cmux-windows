@@ -40,14 +40,19 @@
                         </Border.ContextMenu>
                         <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12"
+                            <Ellipse Grid.Column="0" Width="6" Height="6" Margin="0,0,6,0"
+                                     VerticalAlignment="Center"
+                                     Fill="#FF6366F1"
+                                     Visibility="{Binding HasUnreadNotifications, Converter={StaticResource BoolToVisibility}}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12"
                                        Foreground="{StaticResource ForegroundDimBrush}"
                                        VerticalAlignment="Center"
                                        x:Name="tabText" />
-                            <Button Grid.Column="1" Content="&#xE10A;" FontFamily="Segoe MDL2 Assets"
+                            <Button Grid.Column="2" Content="&#xE10A;" FontFamily="Segoe MDL2 Assets"
                                     FontSize="8" Margin="8,0,0,0" Padding="2"
                                     Opacity="0" x:Name="closeBtn"
                                     Style="{StaticResource CmuxButton}"

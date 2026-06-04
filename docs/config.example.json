@@ -35,7 +35,10 @@
     "enableToastNotifications": true,
     "toastOnlyWhenUnfocused": true,
     "enableTaskbarFlash": true,
-    "flashOnlyWhenUnfocused": true
+    "flashOnlyWhenUnfocused": true,
+    "enableIdleDetection": true,
+    "idleAttentionSeconds": 90,
+    "idleOnlyWhenAgentDetected": true
   },
   "agent": {
     "enabled": false

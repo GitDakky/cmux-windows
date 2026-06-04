@@ -48,6 +48,9 @@ public class TerminalControl : FrameworkElement
     private DateTime _bellFlashUntil;
     private System.Windows.Threading.DispatcherTimer? _bellTimer;
 
+    // Resize debounce — avoids flooding ConPTY while dragging window edges
+    private System.Windows.Threading.DispatcherTimer? _resizeDebounceTimer;
+
     // URL detection
     private (int row, int startCol, int endCol, string url)? _hoveredUrl;
     private int _lastUrlRow = -1;
@@ -322,6 +325,21 @@ public class TerminalControl : FrameworkElement
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
         base.OnRenderSizeChanged(sizeInfo);
+
+        _resizeDebounceTimer ??= new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(50),
+        };
+        _resizeDebounceTimer.Stop();
+        _resizeDebounceTimer.Tick -= OnResizeDebounceTick;
+        _resizeDebounceTimer.Tick += OnResizeDebounceTick;
+        _resizeDebounceTimer.Start();
+    }
+
+    private void OnResizeDebounceTick(object? sender, EventArgs e)
+    {
+        _resizeDebounceTimer?.Stop();
+        CalculateCellSize();
         CalculateTerminalSize();
         RequestRender(System.Windows.Threading.DispatcherPriority.Render);
     }

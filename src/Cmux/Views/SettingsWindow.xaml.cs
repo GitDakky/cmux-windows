@@ -103,6 +103,9 @@ public partial class SettingsWindow : Window
         ToastOnlyUnfocusedCheck.IsChecked = notifications.ToastOnlyWhenUnfocused;
         TaskbarFlashCheck.IsChecked = notifications.EnableTaskbarFlash;
         FlashOnlyUnfocusedCheck.IsChecked = notifications.FlashOnlyWhenUnfocused;
+        IdleDetectionCheck.IsChecked = notifications.EnableIdleDetection;
+        IdleAttentionSecondsBox.Text = Math.Clamp(notifications.IdleAttentionSeconds, 15, 3600).ToString();
+        IdleAgentsOnlyCheck.IsChecked = notifications.IdleOnlyWhenAgentDetected;
 
         var agent = s.Agent ?? new AgentSettings();
         AgentEnabledCheck.IsChecked = agent.Enabled;
@@ -220,6 +223,10 @@ public partial class SettingsWindow : Window
         s.Notifications.ToastOnlyWhenUnfocused = ToastOnlyUnfocusedCheck.IsChecked == true;
         s.Notifications.EnableTaskbarFlash = TaskbarFlashCheck.IsChecked == true;
         s.Notifications.FlashOnlyWhenUnfocused = FlashOnlyUnfocusedCheck.IsChecked == true;
+        s.Notifications.EnableIdleDetection = IdleDetectionCheck.IsChecked == true;
+        if (int.TryParse(IdleAttentionSecondsBox.Text, out var idleSec))
+            s.Notifications.IdleAttentionSeconds = Math.Clamp(idleSec, 15, 3600);
+        s.Notifications.IdleOnlyWhenAgentDetected = IdleAgentsOnlyCheck.IsChecked == true;
 
         s.UseCustomTerminalColors = UseCustomTerminalColorsCheck.IsChecked == true;
         s.CustomTerminalBackground = NormalizeHexColor(TerminalBackgroundHexBox.Text) ?? string.Empty;
