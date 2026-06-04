@@ -98,6 +98,12 @@ public partial class SettingsWindow : Window
         CaptureOnClearCheck.IsChecked = s.CaptureTranscriptsOnClear;
         TranscriptRetentionDaysBox.Text = Math.Clamp(s.TranscriptRetentionDays, 0, 3650).ToString();
 
+        var notifications = s.Notifications ?? new NotificationSettings();
+        ToastNotificationsCheck.IsChecked = notifications.EnableToastNotifications;
+        ToastOnlyUnfocusedCheck.IsChecked = notifications.ToastOnlyWhenUnfocused;
+        TaskbarFlashCheck.IsChecked = notifications.EnableTaskbarFlash;
+        FlashOnlyUnfocusedCheck.IsChecked = notifications.FlashOnlyWhenUnfocused;
+
         var agent = s.Agent ?? new AgentSettings();
         AgentEnabledCheck.IsChecked = agent.Enabled;
         AgentNameBox.Text = string.IsNullOrWhiteSpace(agent.AgentName) ? "assistant" : agent.AgentName;
@@ -208,6 +214,12 @@ public partial class SettingsWindow : Window
         s.CaptureTranscriptsOnClear = CaptureOnClearCheck.IsChecked == true;
         if (int.TryParse(TranscriptRetentionDaysBox.Text, out int transcriptRetention))
             s.TranscriptRetentionDays = Math.Clamp(transcriptRetention, 0, 3650);
+
+        s.Notifications ??= new NotificationSettings();
+        s.Notifications.EnableToastNotifications = ToastNotificationsCheck.IsChecked == true;
+        s.Notifications.ToastOnlyWhenUnfocused = ToastOnlyUnfocusedCheck.IsChecked == true;
+        s.Notifications.EnableTaskbarFlash = TaskbarFlashCheck.IsChecked == true;
+        s.Notifications.FlashOnlyWhenUnfocused = FlashOnlyUnfocusedCheck.IsChecked == true;
 
         s.UseCustomTerminalColors = UseCustomTerminalColorsCheck.IsChecked == true;
         s.CustomTerminalBackground = NormalizeHexColor(TerminalBackgroundHexBox.Text) ?? string.Empty;

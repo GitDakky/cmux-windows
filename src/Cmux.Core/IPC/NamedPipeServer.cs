@@ -70,7 +70,8 @@ public sealed class NamedPipeServer : IDisposable
         {
             using (pipe)
             {
-                using var reader = new StreamReader(pipe, Encoding.UTF8, leaveOpen: true);
+                using var reader = new StreamReader(
+                    pipe, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 4096, leaveOpen: true);
                 using var writer = new StreamWriter(pipe, Encoding.UTF8, leaveOpen: true) { AutoFlush = true };
 
                 var requestLine = await reader.ReadLineAsync(ct);
@@ -212,12 +213,21 @@ public static class NamedPipeClient
     {
         var pipeName = string.IsNullOrEmpty(tag) ? "cmux" : $"cmux-{tag}";
 
+        using var connectCts = new CancellationTokenSource(timeoutMs);
         using var pipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-        using var cts = new CancellationTokenSource(timeoutMs);
 
-        await pipe.ConnectAsync(cts.Token);
+        try
+        {
+            await pipe.ConnectAsync(connectCts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            throw new TimeoutException($"Timed out after {timeoutMs}ms connecting to cmux pipe '{pipeName}'.");
+        }
 
-        using var reader = new StreamReader(pipe, Encoding.UTF8, leaveOpen: true);
+        using var ioCts = new CancellationTokenSource(timeoutMs);
+        using var reader = new StreamReader(
+            pipe, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 4096, leaveOpen: true);
         using var writer = new StreamWriter(pipe, Encoding.UTF8, leaveOpen: true) { AutoFlush = true };
 
         var sb = new StringBuilder(command);
@@ -230,9 +240,9 @@ public static class NamedPipeClient
             }
         }
 
-        await writer.WriteLineAsync(sb.ToString());
+        await writer.WriteLineAsync(sb.ToString(), ioCts.Token);
 
-        var response = await reader.ReadLineAsync(cts.Token);
+        var response = await reader.ReadLineAsync(ioCts.Token);
         return response ?? "";
     }
 }

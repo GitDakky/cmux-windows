@@ -3,9 +3,11 @@ using System.Text.Json;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cmux.Core.Config;
 using Cmux.Core.IPC;
 using Cmux.Core.Models;
 using Cmux.Core.Services;
+using Cmux.Services;
 
 namespace Cmux.ViewModels;
 
@@ -54,6 +56,8 @@ public partial class MainViewModel : ObservableObject
             TotalUnreadCount = _notificationService.UnreadCount;
             UpdateWorkspaceNotificationCounts();
         };
+
+        _notificationService.NotificationAdded += HandleNotificationAttention;
 
         // Wire up the named pipe command handler
         if (App.PipeServer != null)
@@ -265,12 +269,30 @@ public partial class MainViewModel : ObservableObject
         _notificationService.MarkAllAsRead();
     }
 
+    private void HandleNotificationAttention(TerminalNotification notification)
+    {
+        var prefs = SettingsService.Current.Notifications;
+        var mainWindow = Application.Current.MainWindow;
+        var unfocused = mainWindow == null || !mainWindow.IsActive;
+
+        if (prefs.EnableToastNotifications && (!prefs.ToastOnlyWhenUnfocused || unfocused))
+        {
+            var workspaceName = Workspaces
+                .FirstOrDefault(w => w.Workspace.Id == notification.WorkspaceId)?.Name ?? "Terminal";
+            ToastNotificationHelper.ShowToast(notification, workspaceName);
+        }
+
+        if (prefs.EnableTaskbarFlash && (!prefs.FlashOnlyWhenUnfocused || unfocused))
+            TaskbarFlashHelper.Flash(mainWindow);
+    }
+
     private void UpdateWorkspaceNotificationCounts()
     {
         foreach (var ws in Workspaces)
         {
             ws.UnreadNotificationCount = _notificationService.GetUnreadCount(ws.Workspace.Id);
             ws.LatestNotificationText = _notificationService.GetLatestText(ws.Workspace.Id);
+            ws.HasNotification = ws.UnreadNotificationCount > 0;
         }
     }
 

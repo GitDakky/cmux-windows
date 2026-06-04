@@ -9,8 +9,9 @@ Fork: https://github.com/GitDakky/cmux-windows
 - [x] Fork and clone
 - [x] Initial audit ([AUDIT-INITIAL.md](./AUDIT-INITIAL.md))
 - [x] Pin SDK via `global.json`
-- [ ] CI green on fork after push
-- [ ] Windows dev machine: install .NET 10 SDK, build, run smoke checklist
+- [x] CI workflow: zip artefact + `workflow_dispatch`
+- [ ] CI green on fork (enable Actions on GitHub if needed)
+- [ ] Windows dev machine: install .NET 10 SDK, build, run [MANUAL-TEST-CHECKLIST.md](./MANUAL-TEST-CHECKLIST.md)
 
 ---
 
@@ -40,17 +41,16 @@ Goal: **Reliable daily-driver terminal multiplexer** for AI agent workflows on W
 
 ### 1.4 Notifications (agent attention)
 
-- OSC 9/99/777 → unread state + notification panel
-- `cmux notify` from hooks
-- Windows toast when app unfocused (setting)
-- **Add:** taskbar/window flash optional (Win32 `FlashWindow`)
-- **Add:** config toggles: toast on/off, flash on/off, focus-only
+- [x] OSC 9/99/777 → unread state + notification panel
+- [x] `cmux notify` from hooks
+- [x] Windows toast when app unfocused (setting)
+- [x] Taskbar flash optional (Win32 `FlashWindow`)
+- [x] Config toggles: toast on/off, flash on/off, focus-only
 
 ### 1.5 Configuration
 
-- Document `%LOCALAPPDATA%\cmux\settings.json`
-- Ship **example** `docs/config.example.json`
-- Optional: support `%USERPROFILE%\.cmux-windows\config.json` as override path (Stage 1.5 if low effort)
+- [x] Primary path `%USERPROFILE%\.cmux-windows\config.json` (legacy fallback)
+- [x] Example `docs/config.example.json`
 
 ### 1.6 Packaging
 

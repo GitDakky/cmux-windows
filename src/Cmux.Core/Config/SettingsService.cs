@@ -1,18 +1,31 @@
 using System.Text.Json;
+using Cmux.Core.Services;
 
 namespace Cmux.Core.Config;
 
 /// <summary>
 /// Manages reading, writing, and caching of <see cref="CmuxSettings"/>.
-/// Settings are stored at <c>%LOCALAPPDATA%/cmux/settings.json</c>.
+/// Settings are stored at <c>%USERPROFILE%\.cmux-windows\config.json</c> when present or after save;
+/// legacy path <c>%LOCALAPPDATA%\cmux\settings.json</c> is used for load when the user file does not exist.
 /// </summary>
 public static class SettingsService
 {
-    private static readonly string SettingsDir =
+    /// <summary>Override for unit tests.</summary>
+    internal static string? SettingsPathOverride { get; set; }
+
+    internal static void ResetForTests() => _current = null;
+
+    private static readonly string UserSettingsDir =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cmux-windows");
+
+    private static readonly string UserSettingsPath =
+        Path.Combine(UserSettingsDir, "config.json");
+
+    private static readonly string LegacySettingsDir =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "cmux");
 
-    private static readonly string SettingsPath =
-        Path.Combine(SettingsDir, "settings.json");
+    private static readonly string LegacySettingsPath =
+        Path.Combine(LegacySettingsDir, "settings.json");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -22,15 +35,28 @@ public static class SettingsService
 
     private static CmuxSettings? _current;
 
+    /// <summary>Path used for the next load (user config if it exists, else legacy).</summary>
+    public static string ActiveSettingsPath => SettingsPathOverride ?? ResolveLoadPath();
+
+    /// <summary>Path where <see cref="Save"/> writes.</summary>
+    public static string SaveSettingsPath => SettingsPathOverride ?? UserSettingsPath;
+
     /// <summary>
     /// The current in-memory settings instance (loaded on first access).
     /// </summary>
     public static CmuxSettings Current => _current ??= Load();
 
     /// <summary>
-    /// Raised after <see cref="NotifyChanged"/> is called to signal that settings have been modified.
+    /// Raised after settings have been modified and persisted.
     /// </summary>
     public static event Action? SettingsChanged;
+
+    private static string ResolveLoadPath()
+    {
+        if (File.Exists(UserSettingsPath))
+            return UserSettingsPath;
+        return LegacySettingsPath;
+    }
 
     /// <summary>
     /// Reads settings from disk. Returns a fresh default instance on any failure.
@@ -39,15 +65,24 @@ public static class SettingsService
     {
         try
         {
-            if (!File.Exists(SettingsPath))
-                return new CmuxSettings();
+            var path = ActiveSettingsPath;
+            if (!File.Exists(path))
+            {
+                var defaults = new CmuxSettings();
+                ApplyDefaults(defaults);
+                return defaults;
+            }
 
-            var json = File.ReadAllText(SettingsPath);
-            return JsonSerializer.Deserialize<CmuxSettings>(json, JsonOptions) ?? new CmuxSettings();
+            var json = File.ReadAllText(path);
+            var settings = JsonSerializer.Deserialize<CmuxSettings>(json, JsonOptions) ?? new CmuxSettings();
+            ApplyDefaults(settings);
+            return settings;
         }
         catch
         {
-            return new CmuxSettings();
+            var defaults = new CmuxSettings();
+            ApplyDefaults(defaults);
+            return defaults;
         }
     }
 
@@ -60,17 +95,18 @@ public static class SettingsService
 
         try
         {
-            Directory.CreateDirectory(SettingsDir);
+            var path = SaveSettingsPath;
+            var dir = Path.GetDirectoryName(path)!;
+            Directory.CreateDirectory(dir);
 
-            var tmpPath = SettingsPath + ".tmp";
+            var tmpPath = path + ".tmp";
             var json = JsonSerializer.Serialize(settings, JsonOptions);
             File.WriteAllText(tmpPath, json);
-            File.Move(tmpPath, SettingsPath, overwrite: true);
+            File.Move(tmpPath, path, overwrite: true);
         }
         catch
         {
             // Swallow write failures (permission issues, disk full, etc.)
-            // to avoid crashing the application.
         }
     }
 
@@ -80,6 +116,7 @@ public static class SettingsService
     public static CmuxSettings Reset()
     {
         _current = new CmuxSettings();
+        ApplyDefaults(_current);
         Save(_current);
         return _current;
     }
@@ -89,4 +126,41 @@ public static class SettingsService
     /// Call after modifying <see cref="Current"/> properties.
     /// </summary>
     public static void NotifyChanged() => SettingsChanged?.Invoke();
+
+    /// <summary>
+    /// Reloads settings from disk into <see cref="Current"/>.
+    /// </summary>
+    public static void Reload()
+    {
+        _current = Load();
+        SettingsChanged?.Invoke();
+    }
+
+    internal static void ApplyDefaults(CmuxSettings settings)
+    {
+        settings.Notifications ??= new NotificationSettings();
+        settings.Agent ??= new AgentSettings();
+
+        if (string.IsNullOrWhiteSpace(settings.DefaultShell))
+        {
+            var shells = ShellDetector.DetectShells();
+            if (shells.Count > 0)
+                settings.DefaultShell = shells[0].Path;
+        }
+
+        if (settings.ShellProfiles.Count == 0)
+        {
+            var shells = ShellDetector.DetectShells();
+            for (int i = 0; i < shells.Count; i++)
+            {
+                var sh = shells[i];
+                settings.ShellProfiles.Add(new ShellProfile
+                {
+                    Name = sh.Name,
+                    Command = sh.Path,
+                    IsDefault = i == 0,
+                });
+            }
+        }
+    }
 }
