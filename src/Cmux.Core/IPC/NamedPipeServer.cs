@@ -240,7 +240,7 @@ public static class NamedPipeClient
             }
         }
 
-        await writer.WriteLineAsync(sb.ToString(), ioCts.Token);
+        await writer.WriteLineAsync(sb.ToString());
 
         var response = await reader.ReadLineAsync(ioCts.Token);
         return response ?? "";
