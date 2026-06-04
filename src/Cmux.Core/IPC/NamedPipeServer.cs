@@ -197,6 +197,8 @@ public sealed class NamedPipeServer : IDisposable
 /// </summary>
 public static class NamedPipeClient
 {
+    private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
     public static async Task<string> SendCommand(string command, Dictionary<string, string>? args = null, string? tag = null, int timeoutMs = 5000)
     {
         var pipeName = string.IsNullOrEmpty(tag) ? "cmux" : $"cmux-{tag}";
