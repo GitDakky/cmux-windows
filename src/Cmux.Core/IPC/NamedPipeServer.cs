@@ -11,6 +11,10 @@ namespace Cmux.Core.IPC;
 /// </summary>
 public sealed class NamedPipeServer : IDisposable
 {
+    // UTF-8 without BOM — Encoding.UTF8 + AutoFlush can flush a BOM at writer construction
+    // and deadlock named pipes via FlushFileBuffers when neither side has read yet.
+    private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
     private readonly string _pipeName;
     private CancellationTokenSource? _cts;
     private Task? _listenTask;
@@ -49,7 +53,6 @@ public sealed class NamedPipeServer : IDisposable
 
                 await pipe.WaitForConnectionAsync(ct);
 
-                // Handle each connection on its own task
                 _ = Task.Run(() => HandleConnection(pipe, ct), ct);
             }
             catch (OperationCanceledException)
@@ -58,7 +61,6 @@ public sealed class NamedPipeServer : IDisposable
             }
             catch (IOException)
             {
-                // Pipe error, retry
                 await Task.Delay(100, ct);
             }
         }
@@ -70,32 +72,24 @@ public sealed class NamedPipeServer : IDisposable
         {
             using (pipe)
             {
-                using var reader = new StreamReader(
-                    pipe, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 4096, leaveOpen: true);
-                using var writer = new StreamWriter(pipe, Encoding.UTF8, leaveOpen: true) { AutoFlush = true };
+                using var reader = new StreamReader(pipe, Utf8NoBom, leaveOpen: true);
+                using var writer = new StreamWriter(pipe, Utf8NoBom, leaveOpen: true) { AutoFlush = true };
 
                 var requestLine = await reader.ReadLineAsync(ct);
                 if (string.IsNullOrEmpty(requestLine)) return;
 
-                // Parse: COMMAND key1=value1 key2=value2 ...
                 var parts = requestLine.Split(' ', 2);
                 var command = parts[0].ToUpperInvariant();
                 var args = new Dictionary<string, string>();
 
                 if (parts.Length > 1)
-                {
                     ParseArgs(parts[1], args);
-                }
 
                 string response;
                 if (OnCommand != null)
-                {
                     response = await OnCommand(command, args);
-                }
                 else
-                {
                     response = JsonSerializer.Serialize(new { error = "No handler registered" });
-                }
 
                 await writer.WriteLineAsync(response);
             }
@@ -112,7 +106,6 @@ public sealed class NamedPipeServer : IDisposable
 
     private static void ParseArgs(string argsString, Dictionary<string, string> args)
     {
-        // Support both key=value and JSON formats
         var trimmed = argsString.Trim();
         if (trimmed.StartsWith('{'))
         {
@@ -143,7 +136,6 @@ public sealed class NamedPipeServer : IDisposable
             }
             else
             {
-                // Positional argument
                 args.TryAdd("_arg" + args.Count, part);
             }
         }
@@ -160,13 +152,9 @@ public sealed class NamedPipeServer : IDisposable
             if (inQuote)
             {
                 if (c == quoteChar)
-                {
                     inQuote = false;
-                }
                 else
-                {
                     current.Append(c);
-                }
             }
             else if (c is '"' or '\'')
             {
@@ -213,36 +201,39 @@ public static class NamedPipeClient
     {
         var pipeName = string.IsNullOrEmpty(tag) ? "cmux" : $"cmux-{tag}";
 
-        using var connectCts = new CancellationTokenSource(timeoutMs);
+        using var cts = new CancellationTokenSource(timeoutMs);
         using var pipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+
+        using var timeoutRegistration = cts.Token.Register(static state =>
+        {
+            try { ((IDisposable)state!).Dispose(); } catch { /* already disposed */ }
+        }, pipe);
 
         try
         {
-            await pipe.ConnectAsync(connectCts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            throw new TimeoutException($"Timed out after {timeoutMs}ms connecting to cmux pipe '{pipeName}'.");
-        }
+            await pipe.ConnectAsync(cts.Token);
 
-        using var ioCts = new CancellationTokenSource(timeoutMs);
-        using var reader = new StreamReader(
-            pipe, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 4096, leaveOpen: true);
-        using var writer = new StreamWriter(pipe, Encoding.UTF8, leaveOpen: true) { AutoFlush = true };
+            using var reader = new StreamReader(pipe, Utf8NoBom, leaveOpen: true);
+            using var writer = new StreamWriter(pipe, Utf8NoBom, leaveOpen: true) { AutoFlush = true };
 
-        var sb = new StringBuilder(command);
-        if (args != null)
-        {
-            foreach (var kvp in args)
+            var sb = new StringBuilder(command);
+            if (args != null)
             {
-                var value = kvp.Value.Contains(' ') ? $"\"{kvp.Value}\"" : kvp.Value;
-                sb.Append($" {kvp.Key}={value}");
+                foreach (var kvp in args)
+                {
+                    var value = kvp.Value.Contains(' ') ? $"\"{kvp.Value}\"" : kvp.Value;
+                    sb.Append($" {kvp.Key}={value}");
+                }
             }
+
+            await writer.WriteLineAsync(sb.ToString());
+
+            var response = await reader.ReadLineAsync(cts.Token);
+            return response ?? "";
         }
-
-        await writer.WriteLineAsync(sb.ToString());
-
-        var response = await reader.ReadLineAsync(ioCts.Token);
-        return response ?? "";
+        catch (Exception ex) when (cts.IsCancellationRequested)
+        {
+            throw new TimeoutException($"cmux did not respond within {timeoutMs} ms.", ex);
+        }
     }
 }

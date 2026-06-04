@@ -9,9 +9,11 @@ A dark, keyboard-first terminal multiplexer for Windows, inspired by tmux/cmux w
 | [docs/AUDIT-INITIAL.md](docs/AUDIT-INITIAL.md) | Codebase audit vs macOS [cmux](https://github.com/manaflow-ai/cmux) / [wmux](https://github.com/amirlehmam/wmux) |
 | [docs/MVP-PLAN.md](docs/MVP-PLAN.md) | Staged MVP and roadmap |
 | [docs/SETUP.md](docs/SETUP.md) | SDK, build, publish, platform notes |
-| [docs/config.example.json](docs/config.example.json) | Example settings (actual path: `%LOCALAPPDATA%\cmux\settings.json`) |
+| [docs/config.example.json](docs/config.example.json) | Example settings (`%USERPROFILE%\.cmux-windows\config.json`) |
+| [docs/KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md) | Platform and parity limits |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Post-MVP roadmap |
 
-**Current status (2026-06):** Feature-rich WPF multiplexer (ConPTY, splits, OSC notifications, CLI, session persistence, taskbar flash). Requires **.NET 10 SDK** and **Windows** to build/run. Config saves to `%USERPROFILE%\.cmux-windows\config.json` (legacy `%LOCALAPPDATA%\cmux\settings.json` still loaded if present). See [docs/MANUAL-TEST-CHECKLIST.md](docs/MANUAL-TEST-CHECKLIST.md) for smoke tests.
+**Current status (v1.0.7):** MVP feature set on fork — ConPTY multiplexer, pane/tab attention rings, OSC + idle + CLI notifications, taskbar flash, config migration path, CI publish zip, release workflow on tags. Requires **.NET 10 SDK** and **Windows** to build/run. Run `.\scripts\smoke-test.ps1` on Windows; see [docs/MANUAL-TEST-CHECKLIST.md](docs/MANUAL-TEST-CHECKLIST.md) for interactive validation.
 
 ---
 
@@ -63,10 +65,19 @@ A dark, keyboard-first terminal multiplexer for Windows, inspired by tmux/cmux w
 
 ## Build and run (Windows)
 
+### Quick verify
+
+```powershell
+.\scripts\smoke-test.ps1
+# optional: also publish artefacts
+.\scripts\smoke-test.ps1 -Publish
+```
+
 ### Requirements
 
 - Windows 10/11
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) (browser panes)
 - Optional: Visual Studio 2022 / Build Tools
 
 ### Clone
@@ -217,6 +228,13 @@ cmux notify --title "Claude Code" --body "Waiting for your input"
 ```
 
 Ensure the cmux app is running and `cmux.exe` is on `PATH` (publish CLI — see Build `.exe` on Windows).
+
+Optional installer for PowerShell hook helpers:
+
+```powershell
+.\scripts\install-agent-hooks.ps1
+# then in hooks: Send-CmuxAgentNotify -Title "Claude Code" -Body "Waiting for input"
+```
 
 ### In-app behaviour
 

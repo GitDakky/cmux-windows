@@ -761,6 +761,42 @@
                                       Style="{StaticResource SettingsCheck}"
                                       Content="Only flash when cmux is in the background" />
                         </Grid>
+
+                        <TextBlock Text="Idle detection" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="{StaticResource ForegroundBrush}" Margin="0,16,0,10" />
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Idle alerts" Style="{StaticResource SectionLabel}" />
+                            <CheckBox x:Name="IdleDetectionCheck" Grid.Column="1"
+                                      Style="{StaticResource SettingsCheck}"
+                                      Content="Notify when agent panes stop producing output" />
+                        </Grid>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Idle seconds" Style="{StaticResource SectionLabel}" />
+                            <TextBox x:Name="IdleAttentionSecondsBox" Grid.Column="1"
+                                     Style="{StaticResource SettingsTextBox}" Width="80"
+                                     HorizontalAlignment="Left" />
+                        </Grid>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Agents only" Style="{StaticResource SectionLabel}" />
+                            <CheckBox x:Name="IdleAgentsOnlyCheck" Grid.Column="1"
+                                      Style="{StaticResource SettingsCheck}"
+                                      Content="Only when Claude/Codex/Cursor/etc. detected in pane" />
+                        </Grid>
                     </StackPanel>
 
                     <!-- ═══ Keyboard Section ═══ -->

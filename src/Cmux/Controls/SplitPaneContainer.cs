@@ -63,7 +63,8 @@ public class SplitPaneContainer : ContentControl
         {
             Dispatcher.BeginInvoke(Rebuild);
         }
-        else if (e.PropertyName is nameof(SurfaceViewModel.FocusedPaneId))
+        else if (e.PropertyName is nameof(SurfaceViewModel.FocusedPaneId)
+                 or nameof(SurfaceViewModel.HasUnreadNotifications))
         {
             Dispatcher.BeginInvoke(UpdateFocusState);
         }
@@ -87,6 +88,7 @@ public class SplitPaneContainer : ContentControl
         foreach (var (paneId, terminal) in _terminalCache)
         {
             terminal.IsPaneFocused = paneId == _surface.FocusedPaneId;
+            terminal.HasNotification = _surface.HasUnreadPane(paneId);
         }
     }
 
@@ -164,6 +166,7 @@ public class SplitPaneContainer : ContentControl
         terminal.ClosePaneRequested += () => _surface?.ClosePane(paneId);
         terminal.SearchRequested += () => SearchRequested?.Invoke();
         terminal.IsPaneFocused = paneId == _surface?.FocusedPaneId;
+        terminal.HasNotification = _surface?.HasUnreadPane(paneId) == true;
         terminal.IsSurfaceZoomed = _surface?.IsZoomed == true;
 
         // Attach the terminal session
