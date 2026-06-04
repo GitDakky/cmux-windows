@@ -1,0 +1,37 @@
+{
+  "fontFamily": "Cascadia Code",
+  "fontSize": 14,
+  "themeName": "Default Dark",
+  "defaultShell": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+  "defaultShellArgs": "-NoLogo",
+  "scrollbackLines": 10000,
+  "restoreSessionOnStartup": true,
+  "confirmOnClose": true,
+  "shellProfiles": [
+    {
+      "name": "PowerShell 7",
+      "command": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      "arguments": "-NoLogo",
+      "isDefault": true
+    },
+    {
+      "name": "Command Prompt",
+      "command": "C:\\Windows\\System32\\cmd.exe",
+      "arguments": ""
+    },
+    {
+      "name": "WSL",
+      "command": "C:\\Windows\\System32\\wsl.exe",
+      "arguments": ""
+    },
+    {
+      "name": "Git Bash",
+      "command": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "arguments": "--login -i"
+    }
+  ],
+  "keyBindings": {},
+  "agent": {
+    "enabled": false
+  }
+}

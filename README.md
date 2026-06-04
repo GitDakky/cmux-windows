@@ -2,6 +2,17 @@
 
 A dark, keyboard-first terminal multiplexer for Windows, inspired by tmux/cmux workflows but built natively with WPF + ConPTY.
 
+**Active fork (Columbia):** https://github.com/GitDakky/cmux-windows
+
+| Doc | Purpose |
+|-----|---------|
+| [docs/AUDIT-INITIAL.md](docs/AUDIT-INITIAL.md) | Codebase audit vs macOS [cmux](https://github.com/manaflow-ai/cmux) / [wmux](https://github.com/amirlehmam/wmux) |
+| [docs/MVP-PLAN.md](docs/MVP-PLAN.md) | Staged MVP and roadmap |
+| [docs/SETUP.md](docs/SETUP.md) | SDK, build, publish, platform notes |
+| [docs/config.example.json](docs/config.example.json) | Example settings (actual path: `%LOCALAPPDATA%\cmux\settings.json`) |
+
+**Current status (2026-06):** Feature-rich WPF multiplexer (ConPTY, splits, OSC notifications, CLI, session persistence). Requires **.NET 10 SDK** and **Windows** to build/run. See audit for gaps (taskbar flash, macOS cmux hooks/SSH, `.cmux-windows` config path).
+
 ---
 
 ## Why / Who / What / How
