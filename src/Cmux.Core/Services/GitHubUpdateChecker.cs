@@ -89,7 +89,7 @@ public static class GitHubUpdateChecker
             a.Name.EndsWith("-win-x64.zip", StringComparison.OrdinalIgnoreCase));
     }
 
-    internal static bool IsTrustedDownloadUrl(string url)
+    public static bool IsTrustedDownloadUrl(string url)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
             return false;
