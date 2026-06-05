@@ -70,6 +70,14 @@ dotnet run --project src/Cmux/Cmux.csproj -c Debug
 
 Output: `publish/cmux-win-x64/cmuxw.exe` (self-contained).
 
+## Updates
+
+cmux checks **[GitHub Releases](https://github.com/GitDakky/cmux-windows/releases)** for a newer `cmux-windows-v*-win-x64.zip` (enabled by default on startup, configurable under **Settings → Behavior**).
+
+When an update is available, a dialog offers **Update now** or **Remind me later**. Installing downloads the official zip, stages it under `%LOCALAPPDATA%\cmux-windows\updates\`, and applies it after you confirm restart — cmux closes briefly, replaces `app\` and `cli\` files, then relaunches.
+
+Manual check: **Settings → About → Check for updates now**.
+
 ## Setup issues logged (2026-06-05 audit)
 
 | Issue | Mitigation |

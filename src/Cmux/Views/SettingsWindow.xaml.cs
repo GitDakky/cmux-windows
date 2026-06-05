@@ -6,6 +6,7 @@ using System.Windows.Media;
 using Microsoft.Win32;
 using Cmux.Core.Config;
 using Cmux.Core.Services;
+using Cmux.Services;
 
 namespace Cmux.Views;
 
@@ -23,7 +24,7 @@ public partial class SettingsWindow : Window
     public SettingsWindow(string initialSection = "Appearance")
     {
         InitializeComponent();
-        WindowAppearance.Apply(this);
+        WindowAppearance.Apply(this, AppThemes.UsesDarkWindowChrome(SettingsService.Current.AppThemeName));
         PopulateThemes();
         LoadSettings();
         ShowSection(initialSection);
@@ -31,6 +32,7 @@ public partial class SettingsWindow : Window
 
     private void PopulateThemes()
     {
+        AppThemeCombo.ItemsSource = AppThemes.Names;
         ThemeCombo.ItemsSource = TerminalThemes.Names;
         TerminalThemePresetCombo.ItemsSource = TerminalThemes.Names;
         CursorStyleCombo.ItemsSource = new[] { "bar", "block", "underline" };
@@ -67,6 +69,11 @@ public partial class SettingsWindow : Window
         FontSizeSlider.Value = Math.Clamp(s.FontSize, 9, 28);
         UpdateFontSizeText();
 
+        AppThemeCombo.SelectedItem = AppThemes.Normalize(s.AppThemeName);
+        UiFontScaleSlider.Value = Math.Clamp(s.UiFontScale, 1.0, 2.0);
+        UpdateUiFontScaleText();
+        AppThemeService.ApplyUiScaleToWindow(this, s.UiFontScale);
+
         _suppressThemeSync = true;
         ThemeCombo.SelectedItem = s.ThemeName;
         TerminalThemePresetCombo.SelectedItem = s.ThemeName;
@@ -90,6 +97,7 @@ public partial class SettingsWindow : Window
 
         RestoreSessionCheck.IsChecked = s.RestoreSessionOnStartup;
         ConfirmCloseCheck.IsChecked = s.ConfirmOnClose;
+        CheckForUpdatesCheck.IsChecked = (s.Updates ?? new UpdateSettings()).CheckOnStartup;
         AutoCopyCheck.IsChecked = s.AutoCopyOnSelect;
         CtrlClickUrlCheck.IsChecked = s.CtrlClickOpensUrls;
         AutoSaveBox.Text = s.AutoSaveIntervalSeconds.ToString();
@@ -106,6 +114,12 @@ public partial class SettingsWindow : Window
         IdleDetectionCheck.IsChecked = notifications.EnableIdleDetection;
         IdleAttentionSecondsBox.Text = Math.Clamp(notifications.IdleAttentionSeconds, 15, 3600).ToString();
         IdleAgentsOnlyCheck.IsChecked = notifications.IdleOnlyWhenAgentDetected;
+
+        var browser = s.Browser ?? new BrowserSettings();
+        BrowserDefaultProfileCombo.ItemsSource = browser.Profiles;
+        BrowserDefaultProfileCombo.SelectedValue = browser.DefaultProfileId
+            ?? browser.Profiles.FirstOrDefault(p => p.IsDefault)?.Id
+            ?? browser.Profiles.FirstOrDefault()?.Id;
 
         var agent = s.Agent ?? new AgentSettings();
         AgentEnabledCheck.IsChecked = agent.Enabled;
@@ -193,6 +207,8 @@ public partial class SettingsWindow : Window
         var s = SettingsService.Current;
         s.FontFamily = FontFamilyCombo.SelectedItem as string ?? FontFamilyCombo.Text;
         s.FontSize = (int)Math.Round(FontSizeSlider.Value);
+        s.AppThemeName = AppThemes.Normalize(AppThemeCombo.SelectedItem as string);
+        s.UiFontScale = Math.Round(UiFontScaleSlider.Value, 1);
         s.ThemeName = TerminalThemePresetCombo.SelectedItem as string
             ?? ThemeCombo.SelectedItem as string
             ?? "Default Dark";
@@ -208,6 +224,8 @@ public partial class SettingsWindow : Window
 
         s.RestoreSessionOnStartup = RestoreSessionCheck.IsChecked == true;
         s.ConfirmOnClose = ConfirmCloseCheck.IsChecked == true;
+        s.Updates ??= new UpdateSettings();
+        s.Updates.CheckOnStartup = CheckForUpdatesCheck.IsChecked == true;
         s.AutoCopyOnSelect = AutoCopyCheck.IsChecked == true;
         s.CtrlClickOpensUrls = CtrlClickUrlCheck.IsChecked == true;
         if (int.TryParse(AutoSaveBox.Text, out int asv)) s.AutoSaveIntervalSeconds = asv;
@@ -307,6 +325,13 @@ public partial class SettingsWindow : Window
         agent.UseJsonForCustomTools = CustomToolsModeCombo.SelectedIndex == 1;
         agent.UseJsonForMcpServers = McpServersModeCombo.SelectedIndex == 1;
 
+        s.Browser ??= new BrowserSettings();
+        if (BrowserDefaultProfileCombo.SelectedValue is string defaultProfileId &&
+            !string.IsNullOrWhiteSpace(defaultProfileId))
+        {
+            s.Browser.DefaultProfileId = defaultProfileId;
+        }
+
         if (agent.UseJsonForCustomTools)
         {
             if (!TryParseCustomToolsJson(CustomToolsJsonBox.Text, out var parsedTools, out var parseError))
@@ -384,6 +409,11 @@ public partial class SettingsWindow : Window
         return true;
     }
 
+    private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+    {
+        await UpdateCoordinator.CheckAndPromptAsync(this, manual: true);
+    }
+
     private void ShowSection(string section)
     {
         AppearanceSection.Visibility = section == "Appearance" ? Visibility.Visible : Visibility.Collapsed;
@@ -391,10 +421,10 @@ public partial class SettingsWindow : Window
         BehaviorSection.Visibility = section == "Behavior" ? Visibility.Visible : Visibility.Collapsed;
         KeyboardSection.Visibility = section == "Keyboard" ? Visibility.Visible : Visibility.Collapsed;
         AgentSection.Visibility = section == "Agent" ? Visibility.Visible : Visibility.Collapsed;
+        BrowserSection.Visibility = section == "Browser" ? Visibility.Visible : Visibility.Collapsed;
         AboutSection.Visibility = section == "About" ? Visibility.Visible : Visibility.Collapsed;
 
-        // Update nav button active state via Tag
-        foreach (var btn in new[] { NavAppearance, NavTerminal, NavBehavior, NavKeyboard, NavAgent, NavAbout })
+        foreach (var btn in new[] { NavAppearance, NavTerminal, NavBehavior, NavKeyboard, NavAgent, NavBrowser, NavAbout })
             btn.Tag = btn.Name == $"Nav{section}" ? "active" : null;
     }
 
@@ -839,6 +869,24 @@ public partial class SettingsWindow : Window
         return true;
     }
 
+    private void AppThemeCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (AppThemeCombo.SelectedItem is not string appTheme)
+            return;
+
+        var linked = AppThemes.LinkedTerminalTheme(appTheme);
+        if (linked == null)
+            return;
+
+        _suppressThemeSync = true;
+        ThemeCombo.SelectedItem = linked;
+        TerminalThemePresetCombo.SelectedItem = linked;
+        _suppressThemeSync = false;
+
+        UpdateThemePreview();
+        RefreshCustomColorsFromPresetIfNeeded();
+    }
+
     private void ThemeCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_suppressThemeSync)
@@ -891,6 +939,18 @@ public partial class SettingsWindow : Window
     {
         if (FontSizeValueText != null)
             FontSizeValueText.Text = $"{(int)Math.Round(FontSizeSlider.Value)} px";
+    }
+
+    private void UpdateUiFontScaleText()
+    {
+        if (UiFontScaleValueText != null)
+            UiFontScaleValueText.Text = $"{UiFontScaleSlider.Value:P0}";
+    }
+
+    private void UiFontScaleSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        UpdateUiFontScaleText();
+        AppThemeService.ApplyUiScaleToWindow(this, UiFontScaleSlider.Value);
     }
 
     private void OpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

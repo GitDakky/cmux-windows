@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Cmux.Core.Services;
 
 namespace Cmux.Core.Config;
@@ -32,6 +33,7 @@ public static class SettingsService
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
     private static CmuxSettings? _current;
@@ -160,6 +162,25 @@ public static class SettingsService
     {
         settings.Notifications ??= new NotificationSettings();
         settings.Agent ??= new AgentSettings();
+        settings.Browser ??= new BrowserSettings();
+        settings.Updates ??= new UpdateSettings();
+
+        settings.AppThemeName = AppThemes.Normalize(settings.AppThemeName);
+        settings.UiFontScale = Math.Clamp(settings.UiFontScale <= 0 ? 1.0 : settings.UiFontScale, 1.0, 2.0);
+
+        if (settings.Browser.Profiles.Count == 0)
+        {
+            settings.Browser.Profiles.Add(BrowserProfileService.CreateDefaultIsolatedProfile());
+            settings.Browser.Profiles.Add(BrowserProfileService.CreateDefaultPersistentProfile());
+            settings.Browser.Profiles.Add(BrowserProfileService.CreateDefaultExternalProfile());
+        }
+
+        if (string.IsNullOrWhiteSpace(settings.Browser.DefaultProfileId))
+        {
+            settings.Browser.DefaultProfileId = settings.Browser.Profiles
+                .FirstOrDefault(p => p.IsDefault)?.Id
+                ?? settings.Browser.Profiles[0].Id;
+        }
 
         if (string.IsNullOrWhiteSpace(settings.DefaultShell))
         {

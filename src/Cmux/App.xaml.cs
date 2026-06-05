@@ -24,6 +24,8 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        AppThemeService.Apply(SettingsService.Current);
+
         // Add global exception handlers to diagnose crashes
         DispatcherUnhandledException += (s, args) =>
         {

@@ -2,6 +2,8 @@
   "fontFamily": "Cascadia Code",
   "fontSize": 14,
   "themeName": "Default Dark",
+  "appThemeName": "Default Dark",
+  "uiFontScale": 1.0,
   "defaultShell": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
   "defaultShellArgs": "-NoLogo",
   "scrollbackLines": 10000,
@@ -42,5 +44,35 @@
   },
   "agent": {
     "enabled": false
+  },
+  "browser": {
+    "defaultProfileId": "isolated-default",
+    "profiles": [
+      {
+        "id": "isolated-default",
+        "name": "Isolated (agent sandbox)",
+        "kind": "embeddedIsolated",
+        "scopeToSurface": true,
+        "startUrl": "about:blank",
+        "isDefault": true
+      },
+      {
+        "id": "project-default",
+        "name": "Project (persistent)",
+        "kind": "embeddedPersistent",
+        "scopeToSurface": false,
+        "startUrl": "about:blank"
+      },
+      {
+        "id": "external-default",
+        "name": "External browser",
+        "kind": "external",
+        "startUrl": "about:blank"
+      }
+    ]
+  },
+  "updates": {
+    "checkOnStartup": true,
+    "checkIntervalHours": 24
   }
 }

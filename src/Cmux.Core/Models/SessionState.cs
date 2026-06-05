@@ -49,6 +49,18 @@ public class SurfaceState
     [JsonPropertyName("name")]
     public string Name { get; set; } = "";
 
+    [JsonPropertyName("kind")]
+    public string Kind { get; set; } = "terminal";
+
+    [JsonPropertyName("browserProfileId")]
+    public string? BrowserProfileId { get; set; }
+
+    [JsonPropertyName("browserStartUrl")]
+    public string? BrowserStartUrl { get; set; }
+
+    [JsonPropertyName("browserLastUrl")]
+    public string? BrowserLastUrl { get; set; }
+
     [JsonPropertyName("rootNode")]
     public SplitNodeState? RootNode { get; set; }
 

@@ -36,6 +36,7 @@ public static class Program
                 "notify" => await HandleNotify(args[1..]),
                 "workspace" => await HandleWorkspace(args[1..]),
                 "surface" => await HandleSurface(args[1..]),
+                "browser" => await HandleBrowser(args[1..]),
                 "split" => await HandleSplit(args[1..]),
                 "status" => await HandleStatus(),
                 "help" or "--help" or "-h" => PrintHelp(),
@@ -105,13 +106,39 @@ public static class Program
         }
 
         var subcommand = args[0].ToLowerInvariant();
+        var parsed = ParseArgs(args[1..]);
 
         return subcommand switch
         {
-            "create" or "new" => await SendAndPrint("SURFACE.CREATE"),
+            "create" or "new" => await SendAndPrint("SURFACE.CREATE", parsed),
             "next" => await SendAndPrint("SURFACE.NEXT"),
             "previous" or "prev" => await SendAndPrint("SURFACE.PREVIOUS"),
             _ => Error($"Unknown surface command: {subcommand}"),
+        };
+    }
+
+    private static async Task<int> HandleBrowser(string[] args)
+    {
+        if (args.Length == 0)
+        {
+            Console.Error.WriteLine("Usage: cmux browser <create|profiles|navigate|url|eval|snapshot|click|fill>");
+            return 1;
+        }
+
+        var subcommand = args[0].ToLowerInvariant();
+        var parsed = ParseArgs(args[1..]);
+
+        return subcommand switch
+        {
+            "create" or "new" => await SendAndPrint("BROWSER.CREATE", parsed),
+            "profiles" or "list" => await SendAndPrint("BROWSER.PROFILES"),
+            "navigate" or "go" => await SendAndPrint("BROWSER.NAVIGATE", parsed),
+            "url" => await SendAndPrint("BROWSER.URL", parsed),
+            "eval" or "evaluate" => await SendAndPrint("BROWSER.EVAL", parsed),
+            "snapshot" => await SendAndPrint("BROWSER.SNAPSHOT", parsed),
+            "click" => await SendAndPrint("BROWSER.CLICK", parsed),
+            "fill" => await SendAndPrint("BROWSER.FILL", parsed),
+            _ => Error($"Unknown browser command: {subcommand}"),
         };
     }
 
@@ -228,8 +255,27 @@ public static class Program
 
               surface               Manage surfaces (tabs within workspace)
                 create              Create a new surface
+                  --kind <terminal|browser>
+                  --profileId <id>    Browser profile id (browser surfaces)
+                  --startUrl <url>    Initial URL (browser surfaces)
                 next                Switch to next surface
                 previous            Switch to previous surface
+
+              browser               Embedded WebView2 / external browser automation
+                create              Create a browser surface
+                  --profileId <id>
+                  --startUrl <url>
+                profiles            List configured browser profiles
+                navigate            Navigate the active browser surface
+                  --url <url>
+                url                 Get current URL
+                eval                Evaluate JavaScript
+                  --script <js>
+                snapshot            Accessibility tree snapshot (embedded only)
+                click               Click an element
+                  --selector <css>
+                fill                Fill a form field
+                  --selector <css> --value <text>
 
               split                 Split the focused pane
                 right               Split vertically (left/right)
@@ -256,7 +302,7 @@ public static class Program
 
     private static int PrintVersion()
     {
-        Console.WriteLine("cmux 1.0.8 (Windows)");
+        Console.WriteLine("cmux 1.0.9 (Windows)");
         return 0;
     }
 

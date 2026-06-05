@@ -8,9 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **In-app updates** — checks GitHub Releases on startup (configurable), prompts with **Update now**, downloads the official zip, applies it on restart, and relaunches cmux.
+- **Accessibility & app themes** — Settings → Appearance: **App colour theme** (Default Dark, Light, High Contrast, Cyberpunk), **Interface text size** (100%–200%), and matching terminal presets for Light / High Contrast / Cyberpunk. Config keys: `appThemeName`, `uiFontScale`.
+
+## [1.0.9] - 2026-06-05
+
+### Added
+
+- **Browser surfaces** with selectable profiles (`embeddedIsolated`, `embeddedPersistent`, `external`).
+- WebView2 per-profile user-data folders under `%USERPROFILE%\.cmux-windows\browser-profiles\`.
+- `SurfaceContentHost` switches between terminal splits and embedded browser UI.
+- CLI / IPC: `cmux browser …`, `BROWSER.*` pipe commands, `cmux surface create --kind browser`.
+- Settings → **Browser** default profile picker.
+- `docs/BROWSER-PROFILES.md` and `BrowserProfileServiceTests`.
+
 ### Changed
 
 - README redesign with animated hero SVG (`assets/cmux-hero.svg`) and GitDakky branding.
+- `STATUS` pipe command reports version `1.0.9`.
 
 ## [1.0.8] - 2026-06-05
 
@@ -69,8 +86,9 @@ See [docs/AUDIT-INITIAL.md](docs/AUDIT-INITIAL.md) for the pre-fork audit snapsh
 
 | Version | Release |
 |---------|---------|
-| **Latest** | [v1.0.8](https://github.com/GitDakky/cmux-windows/releases/tag/v1.0.8) |
+| **Latest** | [v1.0.9](https://github.com/GitDakky/cmux-windows/releases/tag/v1.0.9) |
 | Previous | [v1.0.7](https://github.com/GitDakky/cmux-windows/releases/tag/v1.0.7) |
 
+[1.0.9]: https://github.com/GitDakky/cmux-windows/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/GitDakky/cmux-windows/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/GitDakky/cmux-windows/compare/v1.0.6...v1.0.7

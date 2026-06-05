@@ -244,7 +244,7 @@
             <DropShadowEffect BlurRadius="24" ShadowDepth="4" Opacity="0.6" Color="Black" />
         </Border.Effect>
 
-        <Grid>
+        <Grid x:Name="UiScaleRoot">
             <Grid.RowDefinitions>
                 <RowDefinition Height="44" />
                 <RowDefinition Height="*" />
@@ -314,6 +314,14 @@
                             <TextBlock Text="Agent" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
+                    <Button x:Name="NavBrowser" Style="{StaticResource NavButton}"
+                            Click="NavButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE774;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                       VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <TextBlock Text="Browser" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                     <Button x:Name="NavAbout" Style="{StaticResource NavButton}"
                             Click="NavButton_Click">
                         <StackPanel Orientation="Horizontal">
@@ -336,6 +344,38 @@
                         <TextBlock Text="Appearance" FontSize="18" FontWeight="SemiBold"
                                    Foreground="{StaticResource ForegroundBrush}" Margin="0,0,0,20" />
 
+                        <!-- App colour theme -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="App colour theme" Style="{StaticResource SectionLabel}" />
+                            <ComboBox x:Name="AppThemeCombo" Grid.Column="1"
+                                      Style="{StaticResource SettingsCombo}"
+                                      Background="{StaticResource InputBackgroundBrush}"
+                                      Foreground="{StaticResource ForegroundBrush}"
+                                      Width="320" HorizontalAlignment="Left"
+                                      SelectionChanged="AppThemeCombo_SelectionChanged" />
+                        </Grid>
+
+                        <!-- Interface text size -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Interface text size" Style="{StaticResource SectionLabel}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Slider x:Name="UiFontScaleSlider" Minimum="1.0" Maximum="2.0"
+                                        Width="220" VerticalAlignment="Center"
+                                        TickFrequency="0.1" IsSnapToTickEnabled="True"
+                                        ValueChanged="UiFontScaleSlider_ValueChanged" />
+                                <TextBlock x:Name="UiFontScaleValueText" Foreground="{StaticResource ForegroundDimBrush}"
+                                           VerticalAlignment="Center" Margin="10,0,0,0" FontSize="12" />
+                            </StackPanel>
+                        </Grid>
+
                         <!-- Font Family -->
                         <Grid Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
@@ -356,7 +396,7 @@
                                 <ColumnDefinition Width="160" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Font Size" Style="{StaticResource SectionLabel}" />
+                            <TextBlock Text="Terminal font size" Style="{StaticResource SectionLabel}" />
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Slider x:Name="FontSizeSlider" Minimum="9" Maximum="28"
                                         Width="220" VerticalAlignment="Center"
@@ -373,7 +413,7 @@
                                 <ColumnDefinition Width="160" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Theme" Style="{StaticResource SectionLabel}" />
+                            <TextBlock Text="Terminal colour preset" Style="{StaticResource SectionLabel}" />
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <ComboBox x:Name="ThemeCombo" Style="{StaticResource SettingsCombo}"
                                           Background="#FF1A1A1A" Foreground="{StaticResource ForegroundBrush}"
@@ -629,6 +669,18 @@
                             <CheckBox x:Name="ConfirmCloseCheck" Grid.Column="1"
                                       Style="{StaticResource SettingsCheck}"
                                       Content="Ask before closing window" />
+                        </Grid>
+
+                        <!-- Updates -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Updates" Style="{StaticResource SectionLabel}" />
+                            <CheckBox x:Name="CheckForUpdatesCheck" Grid.Column="1"
+                                      Style="{StaticResource SettingsCheck}"
+                                      Content="Check GitHub for updates on startup" />
                         </Grid>
 
                         <!-- Auto Copy -->
@@ -1449,6 +1501,32 @@
                         </StackPanel>
                     </StackPanel>
 
+                    <!-- ═══ Browser Section ═══ -->
+                    <StackPanel x:Name="BrowserSection" Visibility="Collapsed">
+                        <TextBlock Text="Browser Profiles" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{StaticResource ForegroundBrush}" Margin="0,0,0,20" />
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Default Profile" Style="{StaticResource SectionLabel}" />
+                            <ComboBox x:Name="BrowserDefaultProfileCombo" Grid.Column="1"
+                                      Style="{StaticResource SettingsCombo}"
+                                      Width="320" HorizontalAlignment="Left"
+                                      DisplayMemberPath="Name" SelectedValuePath="Id" />
+                        </Grid>
+
+                        <TextBlock Text="Embedded WebView2 profiles store cookies and storage under %USERPROFILE%\.cmux-windows\browser-profiles. Isolated profiles are sandboxed per workspace/surface; persistent profiles share data across surfaces."
+                                   Foreground="{StaticResource ForegroundDimBrush}" FontSize="12"
+                                   TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,12" />
+
+                        <TextBlock Text="Advanced profile definitions (external browsers, custom user-data paths, extra launch arguments) can be edited in %USERPROFILE%\.cmux-windows\config.json under the browser.profiles array."
+                                   Foreground="{StaticResource ForegroundDimBrush}" FontSize="12"
+                                   TextWrapping="Wrap" LineHeight="18" />
+                    </StackPanel>
+
                     <!-- ═══ About Section ═══ -->
                     <StackPanel x:Name="AboutSection" Visibility="Collapsed">
                         <TextBlock Text="About" FontSize="18" FontWeight="SemiBold"
@@ -1458,7 +1536,7 @@
                             <StackPanel>
                                 <TextBlock Text="cmux for Windows" FontSize="20" FontWeight="Bold"
                                            Foreground="{StaticResource ForegroundBrush}" Margin="0,0,0,4" />
-                                <TextBlock Text="v1.0.6" FontSize="13"
+                                <TextBlock Text="v1.0.9" FontSize="13"
                                            Foreground="{StaticResource AccentBrush}" Margin="0,0,0,12" />
                                 <TextBlock Text="A modern terminal multiplexer designed for AI coding agents. Split panes, workspaces, command palette, and intelligent terminal management."
                                            Foreground="{StaticResource ForegroundDimBrush}" FontSize="13"
@@ -1471,6 +1549,9 @@
                                 </TextBlock>
                             </StackPanel>
                         </Border>
+
+                        <Button Content="Check for updates now" Style="{StaticResource AccentButton}"
+                                HorizontalAlignment="Left" Padding="14,8" Click="CheckForUpdates_Click" />
                     </StackPanel>
                     </Grid>
                 </ScrollViewer>

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cmux.Core.Config;
 using Cmux.Core.Models;
 using Cmux.Core.Services;
 
@@ -85,13 +86,38 @@ public partial class WorkspaceViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public void CreateNewSurface()
     {
+        CreateTerminalSurface();
+    }
+
+    public void CreateTerminalSurface()
+    {
         var surface = new Surface { Name = $"Terminal {Surfaces.Count + 1}" };
+        AddSurface(surface);
+    }
+
+    public SurfaceViewModel CreateNewBrowserSurface(string? profileId = null, string? startUrl = null)
+    {
+        var profile = BrowserProfileService.ResolveProfile(SettingsService.Current, profileId);
+        var surface = new Surface
+        {
+            Name = $"Browser {Surfaces.Count + 1}",
+            Kind = SurfaceKind.Browser,
+            BrowserProfileId = profile.Id,
+            BrowserStartUrl = startUrl ?? profile.StartUrl,
+        };
+
+        return AddSurface(surface);
+    }
+
+    private SurfaceViewModel AddSurface(Surface surface)
+    {
         Workspace.Surfaces.Add(surface);
 
         var surfaceVm = new SurfaceViewModel(surface, Workspace.Id, _notificationService);
         surfaceVm.WorkingDirectoryChanged += OnSurfaceWorkingDirectoryChanged;
         Surfaces.Add(surfaceVm);
         SelectedSurface = surfaceVm;
+        return surfaceVm;
     }
 
     [RelayCommand]
@@ -102,6 +128,7 @@ public partial class WorkspaceViewModel : ObservableObject, IDisposable
 
         int index = Surfaces.IndexOf(surface);
         surface.CaptureAllPaneTranscripts("surface-close");
+        surface.CaptureBrowserState();
         surface.Dispose();
         Surfaces.Remove(surface);
         Workspace.Surfaces.Remove(surface.Surface);

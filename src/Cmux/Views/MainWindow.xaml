@@ -18,20 +18,6 @@
     </WindowChrome.WindowChrome>
 
     <Window.Resources>
-        <SolidColorBrush x:Key="{x:Static SystemColors.MenuBrushKey}" Color="#FF141420" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.MenuTextBrushKey}" Color="#FFE2E2E9" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#FF252547" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#FFE2E2E9" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#FF141420" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#FF141420" />
-
-        <SolidColorBrush x:Key="{x:Static SystemColors.MenuBarBrushKey}" Color="#FF141420" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.MenuHighlightBrushKey}" Color="#FF252547" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.ControlLightBrushKey}" Color="#FF2A2A3C" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.ControlLightLightBrushKey}" Color="#FF2A2A3C" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.ControlDarkBrushKey}" Color="#FF2A2A3C" />
-        <SolidColorBrush x:Key="{x:Static SystemColors.ControlDarkDarkBrushKey}" Color="#FF2A2A3C" />
-
         <Style x:Key="AppMenuStyle" TargetType="Menu">
             <Setter Property="Background" Value="{StaticResource SidebarBackgroundBrush}" />
             <Setter Property="BorderBrush" Value="Transparent" />
@@ -133,7 +119,7 @@
         <Border.Clip>
             <RectangleGeometry x:Name="WindowClipGeometry" RadiusX="10" RadiusY="10" />
         </Border.Clip>
-        <Grid>
+        <Grid x:Name="UiScaleRoot">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -162,6 +148,7 @@
                             <MenuItem Header="_File" Style="{StaticResource AppMenuTopItemStyle}" ItemContainerStyle="{StaticResource AppMenuSubItemStyle}">
                                 <MenuItem Header="_New Workspace" Command="{Binding CreateNewWorkspaceCommand}" InputGestureText="Ctrl+N" />
                                 <MenuItem Header="New _Surface" Command="{Binding SelectedWorkspace.CreateNewSurfaceCommand}" InputGestureText="Ctrl+T" />
+                                <MenuItem Header="New _Browser Surface" Click="NewBrowserSurface_Click" />
                                 <Separator />
                                 <MenuItem Header="Open Command _Logs" Click="MenuOpenLogs_Click" InputGestureText="Ctrl+Shift+L" />
                                 <MenuItem Header="Open Session _Vault" Click="MenuOpenSessionVault_Click" InputGestureText="Ctrl+Shift+V" />
@@ -398,7 +385,7 @@
                         DataContext="{Binding SelectedWorkspace}" />
 
                     <!-- Toolbar -->
-                    <Border Grid.Row="1" Grid.Column="0" Background="{StaticResource SidebarBackgroundBrush}"
+                    <Border x:Name="SurfaceToolbarBorder" Grid.Row="1" Grid.Column="0" Background="{StaticResource SidebarBackgroundBrush}"
                             BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
                             Padding="6,2">
                         <StackPanel Orientation="Horizontal">
@@ -448,9 +435,9 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Terminal content -->
+                    <!-- Surface content (terminal splits or browser) -->
                     <ContentControl Grid.Row="2" Grid.Column="0" x:Name="ContentArea">
-                        <controls:SplitPaneContainer x:Name="SplitPaneContainerControl"
+                        <controls:SurfaceContentHost x:Name="SurfaceContentHostControl"
                             DataContext="{Binding SelectedWorkspace.SelectedSurface}" />
                     </ContentControl>
 

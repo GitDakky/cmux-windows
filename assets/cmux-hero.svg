@@ -140,7 +140,7 @@
     <text x="46" y="58" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" fill="#fde68a" font-weight="600">AI agents</text>
 
     <rect x="102" y="40" width="114" height="28" rx="14" fill="#172554" stroke="#2563eb" stroke-width="1"/>
-    <text x="159" y="58" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" fill="#bfdbfe" font-weight="600">v1.0.8 win-x64</text>
+    <text x="159" y="58" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" fill="#bfdbfe" font-weight="600">v1.0.9 win-x64</text>
   </g>
 
   <g transform="translate(600 210)">

@@ -11,6 +11,11 @@ public class CmuxSettings
     public string FontFamily { get; set; } = "Cascadia Code";
     public int FontSize { get; set; } = 14;
     public string ThemeName { get; set; } = "Default Dark";
+    public string AppThemeName { get; set; } = "Default Dark";
+
+    /// <summary>Interface text scale for menus, sidebars, and dialogs (1.0 = 100%, up to 2.0 = 200%).</summary>
+    public double UiFontScale { get; set; } = 1.0;
+
     public bool UseCustomTerminalColors { get; set; } = false;
     public string CustomTerminalBackground { get; set; } = "";
     public string CustomTerminalForeground { get; set; } = "";
@@ -54,6 +59,8 @@ public class CmuxSettings
     public List<string> RecentDirectories { get; set; } = [];
     public AgentSettings Agent { get; set; } = new();
     public NotificationSettings Notifications { get; set; } = new();
+    public BrowserSettings Browser { get; set; } = new();
+    public UpdateSettings Updates { get; set; } = new();
 }
 
 /// <summary>
