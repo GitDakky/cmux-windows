@@ -51,23 +51,19 @@ internal static class WindowAppearance
         public POINT ptMaxTrackSize;
     }
 
-    public static void Apply(Window window)
+    public static void Apply(Window window, bool useDarkChrome = true)
     {
+        if (TrySetImmersiveDarkMode(window, useDarkChrome))
+            return;
+
         window.SourceInitialized += (_, _) =>
         {
             try
             {
-                var hwnd = new WindowInteropHelper(window).Handle;
-                if (hwnd == IntPtr.Zero)
+                if (!TrySetImmersiveDarkMode(window, useDarkChrome))
                     return;
 
-                var enabled = 1;
-                _ = DwmSetWindowAttribute(hwnd, DwmUseImmersiveDarkMode, ref enabled, sizeof(int));
-
-                var borderColor = DwmColorNone;
-                _ = DwmSetWindowAttribute(hwnd, DwmWindowBorderColor, ref borderColor, sizeof(uint));
-
-                // Hook WM_GETMINMAXINFO to prevent maximized window from covering the taskbar
+                var hwnd = new WindowInteropHelper(window).Handle;
                 var source = HwndSource.FromHwnd(hwnd);
                 source?.AddHook(MaximizeBoundsHook);
             }
@@ -76,6 +72,27 @@ internal static class WindowAppearance
                 // Best effort: ignore on unsupported systems.
             }
         };
+    }
+
+    public static bool TrySetImmersiveDarkMode(Window window, bool useDarkChrome)
+    {
+        try
+        {
+            var hwnd = new WindowInteropHelper(window).Handle;
+            if (hwnd == IntPtr.Zero)
+                return false;
+
+            var darkMode = useDarkChrome ? 1 : 0;
+            _ = DwmSetWindowAttribute(hwnd, DwmUseImmersiveDarkMode, ref darkMode, sizeof(int));
+
+            var borderColor = DwmColorNone;
+            _ = DwmSetWindowAttribute(hwnd, DwmWindowBorderColor, ref borderColor, sizeof(uint));
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static nint MaximizeBoundsHook(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)

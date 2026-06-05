@@ -10,7 +10,6 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Browser toolbar -->
         <Grid Grid.Row="0" Background="{StaticResource SurfaceTabBackgroundBrush}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -32,7 +31,6 @@
                     Style="{StaticResource CmuxButton}" Click="Reload_Click"
                     Width="32" Height="28" Padding="0" FontSize="12" />
 
-            <!-- Address bar -->
             <Border Grid.Column="3" CornerRadius="6" Margin="4"
                     Background="{StaticResource SurfaceHighBrush}">
                 <TextBox x:Name="AddressBar"
@@ -48,9 +46,28 @@
                     Width="32" Height="28" Padding="0" Margin="0,0,4,0" FontSize="10" />
         </Grid>
 
-        <!-- WebView2 -->
         <wv2:WebView2 Grid.Row="1" x:Name="WebView"
                       NavigationCompleted="WebView_NavigationCompleted"
                       SourceChanged="WebView_SourceChanged" />
+
+        <Border x:Name="ExternalPanel" Grid.Row="0" Grid.RowSpan="2"
+                Background="{StaticResource BackgroundBrush}" Visibility="Collapsed">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="420">
+                <TextBlock Text="&#xE774;" FontFamily="Segoe MDL2 Assets" FontSize="42"
+                           Foreground="{StaticResource AccentBrush}"
+                           HorizontalAlignment="Center" Margin="0,0,0,12" />
+                <TextBlock x:Name="ExternalTitleText" Text="External browser profile"
+                           FontSize="16" FontWeight="SemiBold"
+                           Foreground="{StaticResource ForegroundBrush}"
+                           HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" />
+                <TextBlock x:Name="ExternalDetailText" Text="Pages open in your system browser."
+                           FontSize="12" Margin="0,8,0,16"
+                           Foreground="{StaticResource ForegroundDimBrush}"
+                           HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" />
+                <Button x:Name="ExternalOpenButton" Content="Open URL again"
+                        Style="{StaticResource CmuxButton}" Padding="16,8"
+                        HorizontalAlignment="Center" Click="ExternalOpen_Click" />
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

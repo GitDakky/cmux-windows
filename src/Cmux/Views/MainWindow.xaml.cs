@@ -48,7 +48,7 @@ public partial class MainWindow : Window
         SurfaceTabBarControl.PreviousMatchRequested += OnSearchPrevious;
 
         // Wire terminal surface events
-        SplitPaneContainerControl.SearchRequested += () =>
+        SurfaceContentHostControl.SearchRequested += () =>
         {
             SurfaceTabBarControl.FocusSearch();
         };
@@ -74,6 +74,9 @@ public partial class MainWindow : Window
         var settings = Cmux.Core.Config.SettingsService.Current;
         var theme = Cmux.Core.Config.TerminalThemes.GetEffective(settings);
 
+        AppThemeService.Apply(settings);
+        AppThemeService.ApplyUiScaleToWindow(this, settings.UiFontScale);
+
         Opacity = Math.Clamp(settings.Opacity, 0.5, 1.0);
 
         // Update all visible terminal controls
@@ -81,8 +84,7 @@ public partial class MainWindow : Window
         {
             foreach (var surface in workspace.Surfaces)
             {
-                // Find the SplitPaneContainer for this surface and update terminals
-                var container = FindVisualChild<SplitPaneContainer>(ContentArea, null);
+                var container = SurfaceContentHostControl.SplitPaneContainer;
                 if (container != null)
                 {
                     container.UpdateAllTerminals(theme, settings.FontFamily, settings.FontSize);
@@ -182,6 +184,8 @@ public partial class MainWindow : Window
         // Monitor daemon connection changes
         App.DaemonClient.Connected += () => Dispatcher.BeginInvoke(UpdateDaemonStatus);
         App.DaemonClient.Disconnected += () => Dispatcher.BeginInvoke(UpdateDaemonStatus);
+
+        _ = UpdateCoordinator.CheckOnStartupAsync(this);
     }
 
     private void UpdateDaemonStatus()
@@ -646,6 +650,7 @@ public partial class MainWindow : Window
 
     // Toolbar handlers
     private void ToolbarSplitRight_Click(object sender, RoutedEventArgs e) => ViewModel.SelectedWorkspace?.SelectedSurface?.SplitRight();
+    private void NewBrowserSurface_Click(object sender, RoutedEventArgs e) => ViewModel.SelectedWorkspace?.CreateNewBrowserSurface();
     private void ToolbarSplitDown_Click(object sender, RoutedEventArgs e) => ViewModel.SelectedWorkspace?.SelectedSurface?.SplitDown();
     private void ShellSelector_Click(object sender, RoutedEventArgs e)
     {
@@ -1090,6 +1095,7 @@ public partial class MainWindow : Window
         [
             new() { Id = "new-workspace", Label = "New Workspace", Icon = "\uE710", Shortcut = "Ctrl+N", Category = "Workspace", Execute = () => ViewModel.CreateNewWorkspace() },
             new() { Id = "new-surface", Label = "New Surface", Icon = "\uE710", Shortcut = "Ctrl+T", Category = "Surface", Execute = () => ViewModel.SelectedWorkspace?.CreateNewSurface() },
+            new() { Id = "new-browser", Label = "New Browser Surface", Icon = "\uE774", Category = "Surface", Execute = () => ViewModel.SelectedWorkspace?.CreateNewBrowserSurface() },
             new() { Id = "close-surface", Label = "Close Surface", Icon = "\uE711", Shortcut = "Ctrl+W", Category = "Surface", Execute = () => { var s = ViewModel.SelectedWorkspace?.SelectedSurface; if (s != null) ViewModel.SelectedWorkspace?.CloseSurface(s); } },
             new() { Id = "close-workspace", Label = "Close Workspace", Icon = "\uE711", Shortcut = "Ctrl+Shift+W", Category = "Workspace", Execute = () => ViewModel.CloseWorkspace(ViewModel.SelectedWorkspace) },
             new() { Id = "split-right", Label = "Split Right", Icon = "\uE26B", Shortcut = "Ctrl+D", Category = "Pane", Execute = () => ViewModel.SelectedWorkspace?.SelectedSurface?.SplitRight() },
@@ -1206,9 +1212,18 @@ public partial class MainWindow : Window
             PaneCountText.Text = "0 panes";
             ToolbarZoomIcon.Text = "\uE740";
             ToolbarZoomButton.ToolTip = "Zoom Pane (Ctrl+Shift+Z)";
+            SurfaceToolbarBorder.Visibility = Visibility.Visible;
             return;
         }
 
+        if (surface.IsBrowser)
+        {
+            PaneCountText.Text = "Browser surface";
+            SurfaceToolbarBorder.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        SurfaceToolbarBorder.Visibility = Visibility.Visible;
         var paneCount = surface.RootNode.GetLeaves().Count();
         PaneCountText.Text = surface.IsZoomed
             ? $"{paneCount} panes (1 zoomed)"

@@ -61,6 +61,8 @@ public class SettingsServiceTests
             SettingsService.Current.Notifications.Should().NotBeNull();
             SettingsService.Current.Notifications.EnableToastNotifications.Should().BeTrue();
             SettingsService.Current.Notifications.EnableTaskbarFlash.Should().BeTrue();
+            SettingsService.Current.Browser.Should().NotBeNull();
+            SettingsService.Current.Browser!.Profiles.Should().NotBeEmpty();
         }
         finally
         {

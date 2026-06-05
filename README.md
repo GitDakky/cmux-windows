@@ -32,7 +32,7 @@
 | :-- | :-- |
 | **Maintainer** | [GitDakky](https://github.com/GitDakky) |
 | **Lineage** | [mkurman/cmux-windows](https://github.com/mkurman/cmux-windows) · conceptually aligned with macOS [cmux](https://github.com/manaflow-ai/cmux) |
-| **Current version** | **v1.0.8** |
+| **Current version** | **v1.0.9** |
 
 ---
 
@@ -62,7 +62,7 @@
 > **Requires Windows 10 build 17763+ or Windows 11.** Self-contained — no separate .NET install.
 
 ```text
-1. Download  cmux-windows-v1.0.8-win-x64.zip  from Releases
+1. Download  cmux-windows-v1.0.9-win-x64.zip  from Releases
 2. Extract    app\cmuxw.exe  +  app\cmux-daemon.exe  +  cli\cmux.exe
 3. Run        app\cmuxw.exe
 4. Optional   Add cli\ to PATH  →  cmux notify / workspace / split
@@ -84,11 +84,13 @@ SmartScreen may flag unsigned builds — **More info → Run anyway** if you tru
 | :-- | :-- |
 | **Terminal** | ConPTY backend, scrollback, copy/paste, resize debounce, shell profiles (PowerShell, CMD, WSL, Git Bash) |
 | **Layout** | Workspaces, surfaces, vertical/horizontal splits, zoom pane, restore on launch |
+| **Browser** | WebView2 surfaces with isolated/persistent/external profiles — [`docs/BROWSER-PROFILES.md`](docs/BROWSER-PROFILES.md) |
 | **Agents** | OSC notifications, `cmux notify`, idle detection, process heuristics (Claude, Codex, Cursor, …) |
 | **Attention** | Unread on workspace / tab / pane, toasts & taskbar flash (configurable) |
 | **Productivity** | Command palette, inline search, command logs & history, snippets |
 | **Persistence** | Session daemon, transcript capture, Session Vault browser |
 | **Config** | `%USERPROFILE%\.cmux-windows\config.json` (+ legacy fallback) |
+| **Updates** | GitHub release check on startup; one-click download, apply, and restart |
 
 ---
 

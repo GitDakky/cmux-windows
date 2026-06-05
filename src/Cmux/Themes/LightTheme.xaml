@@ -2,36 +2,36 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <!-- cmux Dark Theme — deep blacks, indigo/purple accents, premium feel -->
+    <!-- cmux Light Theme — clean surfaces, indigo accents -->
 
     <!-- ═══════════════════════════════════════════════════════════════════
          Base Colors (existing keys preserved)
          ═══════════════════════════════════════════════════════════════════ -->
-    <Color x:Key="BackgroundColor">#FF0F0F0F</Color>
-    <Color x:Key="SidebarBackgroundColor">#FF0A0A0A</Color>
-    <Color x:Key="SidebarItemHoverColor">#FF1A1A2E</Color>
-    <Color x:Key="SidebarItemSelectedColor">#FF252547</Color>
-    <Color x:Key="ForegroundColor">#FFE2E2E9</Color>
-    <Color x:Key="ForegroundDimColor">#FF6B6B80</Color>
-    <Color x:Key="AccentColor">#FF818CF8</Color>
-    <Color x:Key="NotificationColor">#FF6366F1</Color>
-    <Color x:Key="BorderColor">#FF2A2A3C</Color>
-    <Color x:Key="SurfaceTabBackgroundColor">#FF161622</Color>
-    <Color x:Key="SurfaceTabSelectedColor">#FF1E1E32</Color>
-    <Color x:Key="DividerColor">#FF2E2E42</Color>
+    <Color x:Key="BackgroundColor">#FFF5F5F7</Color>
+    <Color x:Key="SidebarBackgroundColor">#FFEBEBEF</Color>
+    <Color x:Key="SidebarItemHoverColor">#FFE4E4E8</Color>
+    <Color x:Key="SidebarItemSelectedColor">#FFD4D4DC</Color>
+    <Color x:Key="ForegroundColor">#FF1A1A2E</Color>
+    <Color x:Key="ForegroundDimColor">#FF6B7280</Color>
+    <Color x:Key="AccentColor">#FF4F46E5</Color>
+    <Color x:Key="NotificationColor">#FF4338CA</Color>
+    <Color x:Key="BorderColor">#FFD1D5DB</Color>
+    <Color x:Key="SurfaceTabBackgroundColor">#FFF0F0F4</Color>
+    <Color x:Key="SurfaceTabSelectedColor">#FFE8E8EE</Color>
+    <Color x:Key="DividerColor">#FFC7CBD1</Color>
     <Color x:Key="ErrorColor">#FFEF4444</Color>
     <Color x:Key="SuccessColor">#FF34D399</Color>
     <Color x:Key="WarningColor">#FFFBBF24</Color>
 
     <!-- New accent colors -->
-    <Color x:Key="AccentGlowColor">#80818CF8</Color>
-    <Color x:Key="SurfaceColor">#FF141420</Color>
-    <Color x:Key="SurfaceHighColor">#FF1C1C30</Color>
-    <Color x:Key="PurpleAccent">#FFA78BFA</Color>
+    <Color x:Key="AccentGlowColor">#804F46E5</Color>
+    <Color x:Key="SurfaceColor">#FFFFFFFF</Color>
+    <Color x:Key="SurfaceHighColor">#FFF3F4F6</Color>
+    <Color x:Key="PurpleAccent">#FF6366F1</Color>
     <Color x:Key="TealAccent">#FF2DD4BF</Color>
     <Color x:Key="PinkAccent">#FFF472B6</Color>
     <Color x:Key="OrangeAccent">#FFFB923C</Color>
-    <Color x:Key="InputBackgroundColor">#FF1A1A1A</Color>
+    <Color x:Key="InputBackgroundColor">#FFFFFFFF</Color>
     <Color x:Key="CloseButtonHoverColor">#FFE81123</Color>
 
     <!-- ═══════════════════════════════════════════════════════════════════
@@ -63,32 +63,32 @@
     <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
     <SolidColorBrush x:Key="SurfaceHighBrush" Color="{StaticResource SurfaceHighColor}" />
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="{StaticResource InputBackgroundColor}" />
-    <SolidColorBrush x:Key="OverlayBackgroundBrush" Color="#F2141414" />
+    <SolidColorBrush x:Key="OverlayBackgroundBrush" Color="#F2FFFFFF" />
 
     <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#FF6366F1" Offset="0.0" />
-        <GradientStop Color="#FF818CF8" Offset="0.5" />
+        <GradientStop Color="#FF4338CA" Offset="0.0" />
+        <GradientStop Color="#FF4F46E5" Offset="0.5" />
         <GradientStop Color="#FFA78BFA" Offset="1.0" />
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="SidebarGradientBrush" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FF0A0A0A" Offset="0.0" />
-        <GradientStop Color="#FF0F0F1A" Offset="1.0" />
+        <GradientStop Color="#FFEBEBEF" Offset="0.0" />
+        <GradientStop Color="#FFE8E8EE" Offset="1.0" />
     </LinearGradientBrush>
 
     <RadialGradientBrush x:Key="SelectedTabGlow" GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.8" RadiusY="0.8">
-        <GradientStop Color="#30818CF8" Offset="0.0" />
-        <GradientStop Color="#00818CF8" Offset="1.0" />
+        <GradientStop Color="#304F46E5" Offset="0.0" />
+        <GradientStop Color="#004F46E5" Offset="1.0" />
     </RadialGradientBrush>
 
     <!-- ═══════════════════════════════════════════════════════════════════
          Effects
          ═══════════════════════════════════════════════════════════════════ -->
     <DropShadowEffect x:Key="FloatingShadow" BlurRadius="20" ShadowDepth="4"
-                      Direction="270" Color="#CC000000" Opacity="0.6" />
+                      Direction="270" Color="#33000000" Opacity="0.6" />
 
     <DropShadowEffect x:Key="SubtleShadow" BlurRadius="8" ShadowDepth="2"
-                      Direction="270" Color="#99000000" Opacity="0.4" />
+                      Direction="270" Color="#22000000" Opacity="0.4" />
 
     <DropShadowEffect x:Key="GlowEffect" BlurRadius="16" ShadowDepth="0"
                       Direction="0" Color="{StaticResource AccentColor}" Opacity="0.5" />
@@ -118,7 +118,7 @@
                 <ControlTemplate TargetType="Thumb">
                     <Border x:Name="thumbBorder" CornerRadius="4" Margin="1">
                         <Border.Background>
-                            <SolidColorBrush x:Name="thumbBrush" Color="#FF3A3A50" />
+                            <SolidColorBrush x:Name="thumbBrush" Color="#FFC7CBD1" />
                         </Border.Background>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -127,7 +127,7 @@
                                 <Storyboard>
                                     <ColorAnimation Storyboard.TargetName="thumbBrush"
                                                     Storyboard.TargetProperty="Color"
-                                                    To="#FF818CF8" Duration="0:0:0.15" />
+                                                    To="#FF4F46E5" Duration="0:0:0.15" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
@@ -136,7 +136,7 @@
                                 <Storyboard>
                                     <ColorAnimation Storyboard.TargetName="thumbBrush"
                                                     Storyboard.TargetProperty="Color"
-                                                    To="#FF3A3A50" Duration="0:0:0.25" />
+                                                    To="#FFC7CBD1" Duration="0:0:0.25" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
@@ -173,7 +173,7 @@
                                 <Storyboard>
                                     <ColorAnimation Storyboard.TargetName="borderBrush"
                                                     Storyboard.TargetProperty="Color"
-                                                    To="#FF1A1A2E" Duration="0:0:0.15" />
+                                                    To="#FFE4E4E8" Duration="0:0:0.15" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
@@ -263,7 +263,7 @@
                                 <Storyboard>
                                     <ColorAnimation Storyboard.TargetName="iconBtnBg"
                                                     Storyboard.TargetProperty="Color"
-                                                    To="#FF1A1A2E" Duration="0:0:0.15" />
+                                                    To="#FFE4E4E8" Duration="0:0:0.15" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
@@ -385,7 +385,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsHighlighted" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="#FF1A1A2E" />
+                            <Setter TargetName="border" Property="Background" Value="#FFE4E4E8" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.4" />
@@ -427,11 +427,11 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="#20FFFFFF" />
+                            <Setter TargetName="border" Property="Background" Value="#20000000" />
                             <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="#30FFFFFF" />
+                            <Setter TargetName="border" Property="Background" Value="#30000000" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

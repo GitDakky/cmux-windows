@@ -7,6 +7,7 @@ using Cmux.Core.IPC;
 using Cmux.Core.Models;
 using Cmux.Core.Services;
 using Cmux.Core.Terminal;
+using Cmux.Controls;
 
 namespace Cmux.ViewModels;
 
@@ -22,6 +23,16 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
     private readonly HashSet<string> _daemonOutputLogged = [];
     private static readonly object _daemonWaitLock = new();
     private static bool _daemonWaitDone;
+
+    private BrowserControl? _browserControl;
+    private bool _browserInitInProgress;
+
+    public bool IsBrowser => Surface.Kind == SurfaceKind.Browser;
+
+    public bool IsEmbeddedBrowser =>
+        IsBrowser &&
+        _browserControl != null &&
+        _browserControl.IsEmbeddedReady;
 
     [ObservableProperty]
     private string _name;
@@ -71,6 +82,9 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
         daemon.SessionExited += OnDaemonSessionExited;
         daemon.BellReceived += OnDaemonBellReceived;
         daemon.Disconnected += OnDaemonDisconnected;
+
+        if (IsBrowser)
+            return;
 
         // Start terminal sessions for all leaf nodes
         foreach (var leaf in _rootNode.GetLeaves())
@@ -548,6 +562,7 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
 
     public void SplitFocused(SplitDirection direction, string? shell = null)
     {
+        if (IsBrowser) return;
         if (FocusedPaneId == null) return;
 
         var node = RootNode.FindNode(FocusedPaneId);
@@ -580,6 +595,7 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
 
     public void ClosePane(string? paneId)
     {
+        if (IsBrowser) return;
         if (paneId == null) return;
 
         CapturePaneTranscript(paneId, "pane-close");
@@ -649,10 +665,15 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
 
 
     [RelayCommand]
-    public void ToggleZoom() => IsZoomed = !IsZoomed;
+    public void ToggleZoom()
+    {
+        if (IsBrowser) return;
+        IsZoomed = !IsZoomed;
+    }
 
     public void EqualizePanes()
     {
+        if (IsBrowser) return;
         RootNode.Equalize();
         OnPropertyChanged(nameof(RootNode));
     }
@@ -667,8 +688,160 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
         Surface.Name = value;
     }
 
+    public void AttachBrowserControl(BrowserControl control)
+    {
+        DetachBrowserControl();
+        _browserControl = control;
+        control.UrlChanged += OnBrowserUrlChanged;
+        control.CloseRequested += OnBrowserCloseRequested;
+
+        if (_browserInitInProgress)
+            return;
+
+        var settings = SettingsService.Current;
+        var profile = BrowserProfileService.ResolveProfile(settings, Surface.BrowserProfileId);
+        var startUrl = BrowserProfileService.ResolveStartUrl(
+            profile,
+            Surface.BrowserStartUrl,
+            Surface.BrowserLastUrl);
+
+        if (profile.Kind == BrowserProfileKind.External)
+        {
+            control.ShowExternalMode(profile, startUrl);
+            BrowserProfileService.TryLaunchExternal(profile, startUrl, out _);
+            Surface.BrowserLastUrl = startUrl;
+            return;
+        }
+
+        _browserInitInProgress = true;
+        _ = InitializeBrowserAsync(control, profile, startUrl);
+    }
+
+    public void DetachBrowserControl()
+    {
+        if (_browserControl == null)
+            return;
+
+        CaptureBrowserState();
+        _browserControl.UrlChanged -= OnBrowserUrlChanged;
+        _browserControl.CloseRequested -= OnBrowserCloseRequested;
+        _browserControl = null;
+    }
+
+    public void CaptureBrowserState()
+    {
+        if (!IsBrowser || _browserControl == null)
+            return;
+
+        var url = _browserControl.GetCurrentUrl();
+        if (!string.IsNullOrWhiteSpace(url))
+            Surface.BrowserLastUrl = url;
+    }
+
+    public string? BrowserNavigate(string url)
+    {
+        if (!IsBrowser || _browserControl == null)
+            return "Browser surface is not active.";
+
+        url = BrowserProfileService.NormalizeUrl(url);
+        _browserControl.Navigate(url);
+        Surface.BrowserLastUrl = url;
+        return null;
+    }
+
+    public async Task<(string? Result, string? Error)> BrowserEvaluateAsync(string script)
+    {
+        if (!IsBrowser || _browserControl == null)
+            return (null, "Browser surface is not active.");
+
+        if (!IsEmbeddedBrowser)
+            return (null, "Browser profile uses an external browser; embedded script API is unavailable.");
+
+        var result = await _browserControl.EvaluateJavaScript(script);
+        return (result, null);
+    }
+
+    public string? BrowserGetUrl()
+    {
+        if (!IsBrowser || _browserControl == null)
+            return null;
+
+        return _browserControl.GetCurrentUrl();
+    }
+
+    public async Task<(string? Snapshot, string? Error)> BrowserSnapshotAsync()
+    {
+        if (!IsBrowser || _browserControl == null)
+            return (null, "Browser surface is not active.");
+
+        if (!IsEmbeddedBrowser)
+            return (null, "Browser profile uses an external browser; embedded snapshot API is unavailable.");
+
+        var snapshot = await _browserControl.GetAccessibilitySnapshot();
+        return (snapshot, null);
+    }
+
+    public async Task<string?> BrowserClickAsync(string selector)
+    {
+        if (!IsBrowser || _browserControl == null)
+            return "Browser surface is not active.";
+
+        if (!IsEmbeddedBrowser)
+            return "Browser profile uses an external browser; embedded click API is unavailable.";
+
+        await _browserControl.ClickElement(selector);
+        return null;
+    }
+
+    public async Task<string?> BrowserFillAsync(string selector, string value)
+    {
+        if (!IsBrowser || _browserControl == null)
+            return "Browser surface is not active.";
+
+        if (!IsEmbeddedBrowser)
+            return "Browser profile uses an external browser; embedded fill API is unavailable.";
+
+        await _browserControl.FillElement(selector, value);
+        return null;
+    }
+
+    private async Task InitializeBrowserAsync(BrowserControl control, BrowserProfile profile, string startUrl)
+    {
+        try
+        {
+            await control.InitializeEmbeddedAsync(new Cmux.Models.BrowserLaunchContext
+            {
+                Profile = profile,
+                WorkspaceId = _workspaceId,
+                SurfaceId = Surface.Id,
+                StartUrl = startUrl,
+            });
+            Surface.BrowserLastUrl = control.GetCurrentUrl();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Browser init failed: {ex.Message}");
+        }
+        finally
+        {
+            _browserInitInProgress = false;
+        }
+    }
+
+    private void OnBrowserUrlChanged(string url)
+    {
+        if (!string.IsNullOrWhiteSpace(url))
+            Surface.BrowserLastUrl = url;
+    }
+
+    private void OnBrowserCloseRequested()
+    {
+        // Close is handled by the host window / surface tab bar.
+    }
+
     public void Dispose()
     {
+        DetachBrowserControl();
         _notificationService.UnreadCountChanged -= RefreshUnreadState;
         CapturePaneSnapshotsForPersistence();
 

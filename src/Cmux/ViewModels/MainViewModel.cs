@@ -387,6 +387,7 @@ public partial class MainViewModel : ObservableObject
             {
                 surface.CaptureAllPaneTranscripts("session-close");
                 surface.CapturePaneSnapshotsForPersistence();
+                surface.CaptureBrowserState();
             }
         }
 
@@ -418,6 +419,12 @@ public partial class MainViewModel : ObservableObject
                 {
                     Id = surfState.Id,
                     Name = surfState.Name,
+                    Kind = Enum.TryParse<SurfaceKind>(surfState.Kind, ignoreCase: true, out var kind)
+                        ? kind
+                        : SurfaceKind.Terminal,
+                    BrowserProfileId = surfState.BrowserProfileId,
+                    BrowserStartUrl = surfState.BrowserStartUrl,
+                    BrowserLastUrl = surfState.BrowserLastUrl,
                     FocusedPaneId = surfState.FocusedPaneId,
                     PaneCustomNames = new Dictionary<string, string>(surfState.PaneCustomNames),
                     PaneSnapshots = surfState.PaneSnapshots.ToDictionary(
@@ -529,6 +536,14 @@ public partial class MainViewModel : ObservableObject
                 "PANE.FOCUS" => HandlePaneFocus(args),
                 "PANE.WRITE" => HandlePaneWrite(args),
                 "PANE.READ" => HandlePaneRead(args),
+                "BROWSER.CREATE" => HandleBrowserCreate(args),
+                "BROWSER.NAVIGATE" => HandleBrowserNavigate(args),
+                "BROWSER.EVAL" => HandleBrowserEval(args),
+                "BROWSER.URL" => HandleBrowserUrl(args),
+                "BROWSER.SNAPSHOT" => HandleBrowserSnapshot(args),
+                "BROWSER.CLICK" => HandleBrowserClick(args),
+                "BROWSER.FILL" => HandleBrowserFill(args),
+                "BROWSER.PROFILES" => HandleBrowserProfiles(),
                 "STATUS" => HandleStatus(),
                 _ => JsonSerializer.Serialize(new { error = $"Unknown command: {command}" }),
             };
@@ -606,8 +621,34 @@ public partial class MainViewModel : ObservableObject
 
     private string HandleSurfaceCreate(Dictionary<string, string> args)
     {
-        SelectedWorkspace?.CreateNewSurface();
-        return JsonSerializer.Serialize(new { ok = true });
+        if (SelectedWorkspace == null)
+            return JsonSerializer.Serialize(new { error = "No workspace selected." });
+
+        var kind = args.GetValueOrDefault("kind", "terminal");
+        if (string.Equals(kind, "browser", StringComparison.OrdinalIgnoreCase))
+        {
+            args.TryGetValue("profileId", out var profileId);
+            args.TryGetValue("startUrl", out var startUrl);
+            var surface = SelectedWorkspace.CreateNewBrowserSurface(profileId, startUrl);
+            return JsonSerializer.Serialize(new
+            {
+                ok = true,
+                kind = "browser",
+                id = surface.Surface.Id,
+                name = surface.Name,
+                profileId = surface.Surface.BrowserProfileId,
+            });
+        }
+
+        SelectedWorkspace.CreateNewSurface();
+        var terminal = SelectedWorkspace.SelectedSurface;
+        return JsonSerializer.Serialize(new
+        {
+            ok = true,
+            kind = "terminal",
+            id = terminal?.Surface.Id,
+            name = terminal?.Name,
+        });
     }
 
     private string HandleSurfaceSelect(Dictionary<string, string> args)
@@ -819,11 +860,155 @@ public partial class MainViewModel : ObservableObject
     {
         return JsonSerializer.Serialize(new
         {
-            version = "1.0.6",
+            version = "1.0.9",
             workspaces = Workspaces.Count,
             selectedWorkspace = SelectedWorkspace?.Workspace.Id,
             unreadNotifications = TotalUnreadCount,
         });
+    }
+
+    private string HandleBrowserProfiles()
+    {
+        var settings = SettingsService.Current;
+        settings.Browser ??= new BrowserSettings();
+        var profiles = settings.Browser.Profiles.Select(p => new
+        {
+            id = p.Id,
+            name = p.Name,
+            kind = p.Kind.ToString(),
+            isDefault = p.IsDefault || string.Equals(p.Id, settings.Browser.DefaultProfileId, StringComparison.Ordinal),
+            startUrl = p.StartUrl,
+        });
+        return JsonSerializer.Serialize(new
+        {
+            defaultProfileId = settings.Browser.DefaultProfileId,
+            profiles,
+        });
+    }
+
+    private string HandleBrowserCreate(Dictionary<string, string> args)
+    {
+        args["kind"] = "browser";
+        return HandleSurfaceCreate(args);
+    }
+
+    private string HandleBrowserNavigate(Dictionary<string, string> args)
+    {
+        if (!TryResolveBrowserSurface(args, out var surface, out var error))
+            return JsonSerializer.Serialize(new { error });
+
+        if (!args.TryGetValue("url", out var url) || string.IsNullOrWhiteSpace(url))
+            return JsonSerializer.Serialize(new { error = "Missing required argument: url" });
+
+        var navigateError = surface.BrowserNavigate(url);
+        if (navigateError != null)
+            return JsonSerializer.Serialize(new { error = navigateError });
+
+        return JsonSerializer.Serialize(new
+        {
+            ok = true,
+            url = surface.BrowserGetUrl(),
+            surfaceId = surface.Surface.Id,
+        });
+    }
+
+    private string HandleBrowserEval(Dictionary<string, string> args)
+    {
+        if (!TryResolveBrowserSurface(args, out var surface, out var error))
+            return JsonSerializer.Serialize(new { error });
+
+        if (!args.TryGetValue("script", out var script) || string.IsNullOrWhiteSpace(script))
+            return JsonSerializer.Serialize(new { error = "Missing required argument: script" });
+
+        var (result, evalError) = surface.BrowserEvaluateAsync(script).GetAwaiter().GetResult();
+        if (evalError != null)
+            return JsonSerializer.Serialize(new { error = evalError });
+
+        return JsonSerializer.Serialize(new { ok = true, result });
+    }
+
+    private string HandleBrowserUrl(Dictionary<string, string> args)
+    {
+        if (!TryResolveBrowserSurface(args, out var surface, out var error))
+            return JsonSerializer.Serialize(new { error });
+
+        return JsonSerializer.Serialize(new
+        {
+            ok = true,
+            url = surface.BrowserGetUrl() ?? "",
+            surfaceId = surface.Surface.Id,
+        });
+    }
+
+    private string HandleBrowserSnapshot(Dictionary<string, string> args)
+    {
+        if (!TryResolveBrowserSurface(args, out var surface, out var error))
+            return JsonSerializer.Serialize(new { error });
+
+        var (snapshot, snapshotError) = surface.BrowserSnapshotAsync().GetAwaiter().GetResult();
+        if (snapshotError != null)
+            return JsonSerializer.Serialize(new { error = snapshotError });
+
+        return JsonSerializer.Serialize(new { ok = true, snapshot });
+    }
+
+    private string HandleBrowserClick(Dictionary<string, string> args)
+    {
+        if (!TryResolveBrowserSurface(args, out var surface, out var error))
+            return JsonSerializer.Serialize(new { error });
+
+        if (!args.TryGetValue("selector", out var selector) || string.IsNullOrWhiteSpace(selector))
+            return JsonSerializer.Serialize(new { error = "Missing required argument: selector" });
+
+        var clickError = surface.BrowserClickAsync(selector).GetAwaiter().GetResult();
+        if (clickError != null)
+            return JsonSerializer.Serialize(new { error = clickError });
+
+        return JsonSerializer.Serialize(new { ok = true });
+    }
+
+    private string HandleBrowserFill(Dictionary<string, string> args)
+    {
+        if (!TryResolveBrowserSurface(args, out var surface, out var error))
+            return JsonSerializer.Serialize(new { error });
+
+        if (!args.TryGetValue("selector", out var selector) || string.IsNullOrWhiteSpace(selector))
+            return JsonSerializer.Serialize(new { error = "Missing required argument: selector" });
+
+        if (!args.TryGetValue("value", out var value))
+            return JsonSerializer.Serialize(new { error = "Missing required argument: value" });
+
+        var fillError = surface.BrowserFillAsync(selector, value).GetAwaiter().GetResult();
+        if (fillError != null)
+            return JsonSerializer.Serialize(new { error = fillError });
+
+        return JsonSerializer.Serialize(new { ok = true });
+    }
+
+    private bool TryResolveBrowserSurface(
+        Dictionary<string, string> args,
+        out SurfaceViewModel surface,
+        out string error)
+    {
+        surface = null!;
+        error = "";
+
+        if (!TryResolveWorkspace(args, out var workspace, out error))
+            return false;
+
+        if (!TryResolveSurface(workspace, args, out surface, out error))
+            return false;
+
+        SelectedWorkspace = workspace;
+        workspace.SelectedSurface = surface;
+
+        if (!surface.IsBrowser)
+        {
+            error = "Surface is not a browser surface.";
+            return false;
+        }
+
+        return true;
     }
 
     private bool TryResolveWorkspace(Dictionary<string, string> args, out WorkspaceViewModel workspace, out string error)

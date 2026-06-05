@@ -22,7 +22,7 @@
 
 - No `cmux hooks setup` / agent resume commands yet
 - No SSH workspace workflow
-- No Sparkle auto-update (manual download or GitHub Releases)
+- In-app update check via GitHub Releases (Settings → About → **Check for updates now**)
 - Named pipe CLI (`\\.\pipe\cmux`) — not compatible with macOS Unix socket API
 
 ## Optional components
