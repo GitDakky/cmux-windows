@@ -5,15 +5,21 @@ using System.Text.Json;
 namespace Cmux.Core.IPC;
 
 /// <summary>
+/// UTF-8 without BOM — Encoding.UTF8 + AutoFlush can flush a BOM at writer construction
+/// and deadlock named pipes via FlushFileBuffers when neither side has read yet.
+/// </summary>
+internal static class PipeEncoding
+{
+    public static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+}
+
+/// <summary>
 /// Named pipe server for cmux CLI/API communication.
 /// Windows equivalent of the Unix domain socket used by cmux on macOS.
 /// Pipe name: \\.\pipe\cmux (or \\.\pipe\cmux-{tag} for tagged instances).
 /// </summary>
 public sealed class NamedPipeServer : IDisposable
 {
-    // UTF-8 without BOM — Encoding.UTF8 + AutoFlush can flush a BOM at writer construction
-    // and deadlock named pipes via FlushFileBuffers when neither side has read yet.
-    private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
     private readonly string _pipeName;
     private CancellationTokenSource? _cts;
@@ -72,8 +78,8 @@ public sealed class NamedPipeServer : IDisposable
         {
             using (pipe)
             {
-                using var reader = new StreamReader(pipe, Utf8NoBom, leaveOpen: true);
-                using var writer = new StreamWriter(pipe, Utf8NoBom, leaveOpen: true) { AutoFlush = true };
+                using var reader = new StreamReader(pipe, PipeEncoding.Utf8NoBom, leaveOpen: true);
+                using var writer = new StreamWriter(pipe, PipeEncoding.Utf8NoBom, leaveOpen: true) { AutoFlush = true };
 
                 var requestLine = await reader.ReadLineAsync(ct);
                 if (string.IsNullOrEmpty(requestLine)) return;
@@ -197,8 +203,6 @@ public sealed class NamedPipeServer : IDisposable
 /// </summary>
 public static class NamedPipeClient
 {
-    private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-
     public static async Task<string> SendCommand(string command, Dictionary<string, string>? args = null, string? tag = null, int timeoutMs = 5000)
     {
         var pipeName = string.IsNullOrEmpty(tag) ? "cmux" : $"cmux-{tag}";
@@ -215,8 +219,8 @@ public static class NamedPipeClient
         {
             await pipe.ConnectAsync(cts.Token);
 
-            using var reader = new StreamReader(pipe, Utf8NoBom, leaveOpen: true);
-            using var writer = new StreamWriter(pipe, Utf8NoBom, leaveOpen: true) { AutoFlush = true };
+            using var reader = new StreamReader(pipe, PipeEncoding.Utf8NoBom, leaveOpen: true);
+            using var writer = new StreamWriter(pipe, PipeEncoding.Utf8NoBom, leaveOpen: true) { AutoFlush = true };
 
             var sb = new StringBuilder(command);
             if (args != null)

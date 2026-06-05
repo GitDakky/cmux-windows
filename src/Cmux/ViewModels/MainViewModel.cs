@@ -343,7 +343,11 @@ public partial class MainViewModel : ObservableObject
                 {
                     if (session.ProcessId is not int pid || pid <= 0 ||
                         AgentDetector.DetectFromProcessId(pid) == AgentType.None)
-                        return false;
+                    {
+                        // Suppress for this idle episode — avoid repeating WMI every tick.
+                        PaneActivityTracker.MarkIdleNotified(paneId);
+                        return true;
+                    }
                 }
 
                 PaneActivityTracker.MarkIdleNotified(paneId);
@@ -363,12 +367,14 @@ public partial class MainViewModel : ObservableObject
                     agentLabel,
                     "Idle",
                     "No output for a while — agent may be waiting for input",
-                    NotificationSource.Cli);
+                    NotificationSource.Idle);
 
                 return true;
             }
         }
 
+        // Stale tracker entry (pane closed) — do not retry.
+        PaneActivityTracker.MarkIdleNotified(paneId);
         return false;
     }
 

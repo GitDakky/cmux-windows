@@ -43,4 +43,6 @@ Run on Windows 10/11 after `dotnet build` or published `cmuxw.exe`.
 ## Publish build
 
 - [ ] `.\scripts\publish-win-x64.ps1` completes
+- [ ] `publish\cmux-win-x64\cmuxw.exe` and `cmux-daemon.exe` present
 - [ ] `publish\cmux-win-x64\cmuxw.exe` runs without installed .NET runtime
+- [ ] Status bar or logs show daemon connected (optional; fallback to local ConPTY is OK)

@@ -13,7 +13,7 @@ A dark, keyboard-first terminal multiplexer for Windows, inspired by tmux/cmux w
 | [docs/KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md) | Platform and parity limits |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Post-MVP roadmap |
 
-**Current status (v1.0.7):** MVP feature set on fork — ConPTY multiplexer, pane/tab attention rings, OSC + idle + CLI notifications, taskbar flash, config migration path, CI publish zip, release workflow on tags. Requires **.NET 10 SDK** and **Windows** to build/run. Run `.\scripts\smoke-test.ps1` on Windows; see [docs/MANUAL-TEST-CHECKLIST.md](docs/MANUAL-TEST-CHECKLIST.md) for interactive validation.
+**Current status (v1.0.8):** MVP feature set on fork — ConPTY multiplexer, pane/tab attention rings, OSC + idle + CLI notifications, taskbar flash, config migration path, CI publish zip (includes `cmux-daemon.exe`), release workflow on tags with pre-publish tests. Requires **.NET 10 SDK** and **Windows** to build/run. Run `.\scripts\smoke-test.ps1` on Windows; see [docs/MANUAL-TEST-CHECKLIST.md](docs/MANUAL-TEST-CHECKLIST.md) for interactive validation.
 
 ---
 

@@ -1,14 +1,16 @@
 # cmux-windows roadmap
 
-## v1.0.7 (current fork — GitDakky)
+## v1.0.8 (current fork — GitDakky)
 
 - [x] Taskbar flash + toast notification preferences
 - [x] `%USERPROFILE%\.cmux-windows\config.json` with legacy fallback
 - [x] Pane/tab unread attention indicators
-- [x] Agent idle detection (no-output heuristic)
+- [x] Agent idle detection (no-output heuristic; `NotificationSource.Idle`)
 - [x] CLI named-pipe BOM + timeout fixes
 - [x] Resize debounce for ConPTY
-- [x] CI publish zip + GitHub Release on `v*` tags
+- [x] CI publish zip includes `cmux-daemon.exe` beside `cmuxw.exe`
+- [x] Release workflow runs tests before publishing
+- [x] Settings save failures logged to `%LOCALAPPDATA%\cmux-windows\settings.log`
 - [x] Smoke test script + expanded unit tests
 
 ## v1.1 (next)

@@ -25,6 +25,12 @@ dotnet publish src/Cmux/Cmux.csproj `
     --self-contained true `
     -o $appDir
 
+dotnet publish src/Cmux.Daemon/Cmux.Daemon.csproj `
+    -c $Configuration `
+    -r win-x64 `
+    --self-contained true `
+    -o $appDir
+
 dotnet publish src/Cmux.Cli/Cmux.Cli.csproj `
     -c $Configuration `
     -r win-x64 `
@@ -34,6 +40,12 @@ dotnet publish src/Cmux.Cli/Cmux.Cli.csproj `
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 Compress-Archive -Path $appDir, $cliDir -DestinationPath $zipPath
 
-Write-Host "App:  $((Resolve-Path $appDir).Path)"
-Write-Host "CLI:  $((Resolve-Path $cliDir).Path)"
-Write-Host "Zip:  $((Resolve-Path $zipPath).Path)"
+$daemonExe = Join-Path $appDir "cmux-daemon.exe"
+if (-not (Test-Path $daemonExe)) {
+    throw "Expected cmux-daemon.exe in app publish folder: $daemonExe"
+}
+
+Write-Host "App:    $((Resolve-Path $appDir).Path)"
+Write-Host "Daemon: $daemonExe"
+Write-Host "CLI:    $((Resolve-Path $cliDir).Path)"
+Write-Host "Zip:    $((Resolve-Path $zipPath).Path)"
