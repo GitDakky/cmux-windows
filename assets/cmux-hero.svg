@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" role="img" aria-label="cmux for Windows - terminal multiplexer">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0f1a"/>
+      <stop offset="45%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#1a1033"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#818cf8" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="paneFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="textGlow">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <style>
+    .cursor-blink { animation: cursor-blink 1.05s step-end infinite; }
+    .notif-pulse { animation: notif-pulse 2.2s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+    .scan-line { animation: scan 4.5s linear infinite; }
+    .flow-dash { animation: dash-flow 2.8s linear infinite; }
+    .brand-glow { animation: brand-glow 4s ease-in-out infinite; }
+    .pane-glow { animation: pane-glow 3s ease-in-out infinite alternate; }
+    @keyframes cursor-blink {
+      0%, 45% { opacity: 1; }
+      50%, 100% { opacity: 0.15; }
+    }
+    @keyframes notif-pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.45); opacity: 0.55; }
+    }
+    @keyframes scan {
+      0% { transform: translateY(-120px); opacity: 0; }
+      8% { opacity: 0.12; }
+      50% { opacity: 0.08; }
+      92% { opacity: 0.12; }
+      100% { transform: translateY(320px); opacity: 0; }
+    }
+    @keyframes dash-flow {
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes brand-glow {
+      0%, 100% { opacity: 0.85; }
+      50% { opacity: 1; }
+    }
+    @keyframes pane-glow {
+      0% { stroke-opacity: 0.35; }
+      100% { stroke-opacity: 0.75; }
+    }
+  </style>
+
+  <rect width="960" height="300" fill="url(#bg)" rx="16"/>
+  <rect x="0" y="140" width="960" height="80" fill="url(#glow)" opacity="0.6"/>
+
+  <g opacity="0.06" stroke="#94a3b8" stroke-width="1">
+    <path d="M0 60 H960 M0 120 H960 M0 180 H960 M0 240 H960"/>
+    <path d="M120 0 V300 M240 0 V300 M360 0 V300 M480 0 V300 M600 0 V300 M720 0 V300 M840 0 V300"/>
+  </g>
+
+  <g transform="translate(48 36)">
+    <rect x="0" y="0" width="520" height="228" rx="14" fill="#0b1220" stroke="#334155" stroke-width="1.5" class="pane-glow"/>
+    <rect x="0" y="0" width="520" height="36" rx="14" fill="#070d18"/>
+    <rect x="0" y="22" width="520" height="14" fill="#070d18"/>
+
+    <circle cx="22" cy="18" r="5" fill="#ef4444"/>
+    <circle cx="40" cy="18" r="5" fill="#f59e0b"/>
+    <circle cx="58" cy="18" r="5" fill="#10b981"/>
+
+    <text x="88" y="22" fill="#64748b" font-family="ui-monospace, Consolas, monospace" font-size="11">cmuxw - workspace / surface / pane</text>
+
+    <rect x="12" y="48" width="72" height="168" rx="8" fill="#0f172a" stroke="#1e293b"/>
+    <rect x="22" y="62" width="52" height="8" rx="4" fill="#334155"/>
+    <rect x="22" y="78" width="40" height="6" rx="3" fill="#1e293b"/>
+    <rect x="22" y="94" width="48" height="6" rx="3" fill="#312e81" opacity="0.9"/>
+    <rect x="22" y="110" width="36" height="6" rx="3" fill="#1e293b"/>
+
+    <g class="notif-pulse" transform="translate(62 88)">
+      <circle r="6" fill="#f43f5e" filter="url(#softGlow)"/>
+    </g>
+
+    <rect x="96" y="48" width="196" height="168" rx="8" fill="url(#paneFill)" stroke="#4338ca" stroke-width="1.2" opacity="0.9"/>
+    <rect x="304" y="48" width="204" height="80" rx="8" fill="url(#paneFill)" stroke="#475569" stroke-width="1"/>
+    <rect x="304" y="136" width="204" height="80" rx="8" fill="url(#paneFill)" stroke="#475569" stroke-width="1"/>
+
+    <g font-family="ui-monospace, Consolas, monospace" font-size="10" fill="#64748b">
+      <text x="108" y="72" fill="#818cf8">PS C:\dev\cmux-windows&gt;</text>
+      <text x="108" y="90">dotnet build -c Release</text>
+      <text x="108" y="108" fill="#34d399">Build succeeded.</text>
+      <text x="108" y="126">cmux notify --body "ready"</text>
+    </g>
+    <rect class="cursor-blink" x="268" y="118" width="7" height="12" rx="1" fill="#a5b4fc"/>
+
+    <text x="316" y="72" font-family="ui-monospace, Consolas, monospace" font-size="9" fill="#94a3b8">claude - waiting</text>
+    <rect x="316" y="82" width="120" height="5" rx="2.5" fill="#1e293b"/>
+    <rect x="316" y="94" width="80" height="5" rx="2.5" fill="#1e293b"/>
+
+    <text x="316" y="160" font-family="ui-monospace, Consolas, monospace" font-size="9" fill="#94a3b8">codex - idle 90s</text>
+    <rect x="316" y="170" width="140" height="5" rx="2.5" fill="#312e81" opacity="0.5"/>
+    <rect x="316" y="182" width="100" height="5" rx="2.5" fill="#1e293b"/>
+
+    <rect class="scan-line" x="96" y="48" width="412" height="2" fill="url(#accent)" opacity="0.25"/>
+  </g>
+
+  <g transform="translate(600 52)" filter="url(#textGlow)">
+    <text x="0" y="0" font-family="Segoe UI, system-ui, sans-serif" font-size="42" font-weight="700" fill="#f8fafc">cmux</text>
+    <text x="118" y="0" font-family="Segoe UI, system-ui, sans-serif" font-size="42" font-weight="300" fill="url(#accent)" class="brand-glow">windows</text>
+    <text x="0" y="36" font-family="Segoe UI, system-ui, sans-serif" font-size="15" fill="#94a3b8" font-weight="500">GitDakky - ConPTY - agent-ready</text>
+    <text x="0" y="58" font-family="Segoe UI, system-ui, sans-serif" font-size="12" fill="#64748b">Workspaces - splits - OSC + idle - session daemon</text>
+  </g>
+
+  <g transform="translate(600 128)">
+    <rect x="0" y="0" width="108" height="28" rx="14" fill="#1e1b4b" stroke="#4338ca" stroke-width="1"/>
+    <text x="54" y="18" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" fill="#c7d2fe" font-weight="600">keyboard-first</text>
+
+    <rect x="118" y="0" width="98" height="28" rx="14" fill="#042f2e" stroke="#0d9488" stroke-width="1"/>
+    <text x="167" y="18" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" fill="#99f6e4" font-weight="600">native ConPTY</text>
+
+    <rect x="0" y="40" width="92" height="28" rx="14" fill="#422006" stroke="#b45309" stroke-width="1"/>
+    <text x="46" y="58" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" fill="#fde68a" font-weight="600">AI agents</text>
+
+    <rect x="102" y="40" width="114" height="28" rx="14" fill="#172554" stroke="#2563eb" stroke-width="1"/>
+    <text x="159" y="58" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" fill="#bfdbfe" font-weight="600">v1.0.8 win-x64</text>
+  </g>
+
+  <g transform="translate(600 210)">
+    <path class="flow-dash" d="M0 24 H200" fill="none" stroke="url(#accent)" stroke-width="2" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="200"/>
+    <rect x="0" y="8" width="56" height="32" rx="8" fill="#0f172a" stroke="#475569"/>
+    <text x="28" y="28" text-anchor="middle" font-family="ui-monospace, Consolas, monospace" font-size="10" fill="#a5b4fc">cmux</text>
+    <rect x="72" y="14" width="56" height="20" rx="6" fill="#1e1b4b" stroke="#6366f1" stroke-dasharray="4 3"/>
+    <text x="100" y="28" text-anchor="middle" font-family="ui-monospace, Consolas, monospace" font-size="8" fill="#818cf8">pipe</text>
+    <rect x="144" y="8" width="56" height="32" rx="8" fill="#0f172a" stroke="#475569"/>
+    <text x="172" y="28" text-anchor="middle" font-family="ui-monospace, Consolas, monospace" font-size="9" fill="#e2e8f0">cmuxw</text>
+  </g>
+
+  <rect x="48" y="282" width="864" height="3" rx="1.5" fill="url(#accent)" opacity="0.85">
+    <animate attributeName="opacity" values="0.55;1;0.55" dur="3s" repeatCount="indefinite"/>
+  </rect>
+</svg>
