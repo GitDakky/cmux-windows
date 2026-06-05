@@ -9,13 +9,14 @@
 
 - Custom VT renderer (not libghostty) — some TUI apps may render differently than Ghostty/iTerm.
 - Resize is debounced (50 ms); extremely fast layout churn may briefly show misaligned cells until settle.
-- Daemon-backed sessions fall back to local ConPTY if the background daemon fails to start.
+- Published zip ships `cmux-daemon.exe` next to `cmuxw.exe` under `app\`; sessions still fall back to local ConPTY if the daemon cannot start.
 
 ## Notifications
 
 - Idle detection uses **time since last output** and optional **agent process name** heuristics — not a substitute for OSC notifications from the agent itself.
 - `AgentDetector` uses WMI (`Win32_Process`) — requires Windows and may miss renamed binaries.
 - Toasts require Windows notification support; may be suppressed by Focus Assist.
+- Failed settings writes are logged to `%LOCALAPPDATA%\cmux-windows\settings.log` (no in-app toast yet).
 
 ## macOS cmux parity gaps
 

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Cmux.Core.Services;
 
@@ -104,9 +105,28 @@ public static class SettingsService
             File.WriteAllText(tmpPath, json);
             File.Move(tmpPath, path, overwrite: true);
         }
+        catch (Exception ex)
+        {
+            LogSettingsFailure("Save", ex);
+        }
+    }
+
+    private static void LogSettingsFailure(string operation, Exception ex)
+    {
+        Debug.WriteLine($"[SettingsService] {operation} failed: {ex.Message}");
+
+        try
+        {
+            var logDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "cmux-windows");
+            Directory.CreateDirectory(logDir);
+            var logPath = Path.Combine(logDir, "settings.log");
+            File.AppendAllText(logPath, $"{DateTime.UtcNow:o} {operation} failed: {ex}{Environment.NewLine}");
+        }
         catch
         {
-            // Swallow write failures (permission issues, disk full, etc.)
+            // Last resort — avoid throwing from logging.
         }
     }
 

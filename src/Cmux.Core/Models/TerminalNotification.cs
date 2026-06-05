@@ -6,6 +6,8 @@ public enum NotificationSource
     Osc99,
     Osc777,
     Cli,
+    /// <summary>Heuristic idle detection (no output / agent waiting).</summary>
+    Idle,
 }
 
 public record TerminalNotification
