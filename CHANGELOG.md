@@ -6,6 +6,12 @@ This is the maintained Windows distribution of cmux. It was forked from [mkurman
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+
+- README redesign with animated hero SVG (`assets/cmux-hero.svg`) and GitDakky branding.
+
 ## [1.0.8] - 2026-06-05
 
 ### Added
