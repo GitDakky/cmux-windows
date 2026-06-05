@@ -1,6 +1,7 @@
 # cmux-windows — Staged MVP plan
 
-Fork: https://github.com/GitDakky/cmux-windows
+**GitDakky distribution:** https://github.com/GitDakky/cmux-windows  
+**Changelog:** [../CHANGELOG.md](../CHANGELOG.md)
 
 **Status: MVP complete** (automated CI green; manual checklist for Windows host validation).
 
@@ -12,7 +13,7 @@ Fork: https://github.com/GitDakky/cmux-windows
 - [x] Initial audit ([AUDIT-INITIAL.md](./AUDIT-INITIAL.md))
 - [x] Pin SDK via `global.json`
 - [x] CI workflow: zip artefact + `workflow_dispatch`
-- [x] CI green on fork
+- [x] CI green on GitDakky `main`
 - [ ] Manual run of [MANUAL-TEST-CHECKLIST.md](./MANUAL-TEST-CHECKLIST.md) on a Windows machine
 
 ---

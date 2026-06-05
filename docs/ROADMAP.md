@@ -1,6 +1,8 @@
 # cmux-windows roadmap
 
-## v1.0.8 (current fork — GitDakky)
+Maintained at https://github.com/GitDakky/cmux-windows — see [CHANGELOG.md](../CHANGELOG.md).
+
+## v1.0.8 (current — GitDakky)
 
 - [x] Taskbar flash + toast notification preferences
 - [x] `%USERPROFILE%\.cmux-windows\config.json` with legacy fallback
