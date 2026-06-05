@@ -1,4 +1,5 @@
 using Cmux.Core.Config;
+using Xunit;
 
 namespace Cmux.Tests;
 
