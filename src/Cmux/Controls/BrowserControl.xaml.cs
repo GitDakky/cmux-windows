@@ -127,15 +127,15 @@ public partial class BrowserControl : UserControl
     {
         var escapedSelector = selector.Replace("'", "\\'");
         var escapedValue = value.Replace("'", "\\'");
-        await EvaluateJavaScript($"""
-            (() => {{
-                const el = document.querySelector('{escapedSelector}');
-                if (el) {{
-                    el.value = '{escapedValue}';
-                    el.dispatchEvent(new Event('input', {{ bubbles: true }}));
-                    el.dispatchEvent(new Event('change', {{ bubbles: true }}));
-                }}
-            }})()
+        await EvaluateJavaScript($$"""
+            (() => {
+                const el = document.querySelector('{{escapedSelector}}');
+                if (el) {
+                    el.value = '{{escapedValue}}';
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            })()
             """);
     }
 
