@@ -1,9 +1,10 @@
 # Development setup
 
-## Fork
+## Repository (GitDakky)
 
-- **Fork URL:** https://github.com/GitDakky/cmux-windows
-- **Upstream:** https://github.com/mkurman/cmux-windows
+- **Maintained repo:** https://github.com/GitDakky/cmux-windows
+- **Releases:** https://github.com/GitDakky/cmux-windows/releases
+- **Upstream lineage:** https://github.com/mkurman/cmux-windows
 
 ```powershell
 git clone https://github.com/GitDakky/cmux-windows.git

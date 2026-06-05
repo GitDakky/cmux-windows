@@ -1,7 +1,7 @@
 # cmux-windows — Initial audit (2026-06-05)
 
-**Fork:** https://github.com/GitDakky/cmux-windows  
-**Upstream:** https://github.com/mkurman/cmux-windows (v1.0.6 in `Cmux.csproj`)  
+**Maintained repo (GitDakky):** https://github.com/GitDakky/cmux-windows  
+**Upstream lineage:** https://github.com/mkurman/cmux-windows (audit baseline v1.0.6)  
 **Audit environment:** macOS (darwin); WPF/ConPTY builds require Windows + .NET 10 SDK.
 
 ---
@@ -193,7 +193,7 @@ Upstream **CI on `main` is green** (Windows, .NET 10). Local audit machine had *
 
 | Step | Result |
 |------|--------|
-| Fork `mkurman/cmux-windows` | Done → GitDakky/cmux-windows |
+| GitDakky maintained repo | https://github.com/GitDakky/cmux-windows (successor to mkurman fork) |
 | Clone to workspace | Done |
 | `dotnet build` on macOS (.NET 8) | **FAIL** — NETSDK1045 needs .NET 10 |
 | Run WPF locally | **N/A** on macOS |

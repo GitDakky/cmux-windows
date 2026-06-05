@@ -1,19 +1,48 @@
-# cmux for Windows
+# cmux for Windows (GitDakky)
 
-A dark, keyboard-first terminal multiplexer for Windows, inspired by tmux/cmux workflows but built natively with WPF + ConPTY.
+A dark, keyboard-first terminal multiplexer for Windows, built with WPF and ConPTY. Optimised for AI coding agents (Claude Code, Codex, Cursor, and similar tools) with OSC notifications, idle attention, and a scriptable CLI.
 
-**Active fork (Columbia):** https://github.com/GitDakky/cmux-windows
+**Repository:** https://github.com/GitDakky/cmux-windows  
+**Latest release:** https://github.com/GitDakky/cmux-windows/releases/latest  
+**Changelog:** [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## GitDakky distribution
+
+This repo is the **maintained Windows build** under [GitDakky](https://github.com/GitDakky). It is no longer a throwaway fork: it ships CI-tested releases, documented config, and agent-notification workflows.
+
+| | |
+|---|---|
+| **Clone / build from** | `https://github.com/GitDakky/cmux-windows.git` |
+| **Download (recommended)** | [GitHub Releases](https://github.com/GitDakky/cmux-windows/releases) — `cmux-windows-v{version}-win-x64.zip` |
+| **Lineage** | Forked from [mkurman/cmux-windows](https://github.com/mkurman/cmux-windows); conceptually aligned with macOS [cmux](https://github.com/manaflow-ai/cmux) |
+
+**Current release: v1.0.8** — ConPTY multiplexer, pane/tab attention, OSC + idle + CLI notifications, taskbar flash, config at `%USERPROFILE%\.cmux-windows\config.json`, publish zip with `cmuxw.exe`, `cmux-daemon.exe`, and `cmux` CLI. Requires **Windows 10 (17763+)** or **Windows 11**. Build from source needs the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 | Doc | Purpose |
 |-----|---------|
-| [docs/AUDIT-INITIAL.md](docs/AUDIT-INITIAL.md) | Codebase audit vs macOS [cmux](https://github.com/manaflow-ai/cmux) / [wmux](https://github.com/amirlehmam/wmux) |
-| [docs/MVP-PLAN.md](docs/MVP-PLAN.md) | Staged MVP and roadmap |
-| [docs/SETUP.md](docs/SETUP.md) | SDK, build, publish, platform notes |
-| [docs/config.example.json](docs/config.example.json) | Example settings (`%USERPROFILE%\.cmux-windows\config.json`) |
+| [CHANGELOG.md](CHANGELOG.md) | Version history (GitDakky releases) |
+| [docs/AUDIT-INITIAL.md](docs/AUDIT-INITIAL.md) | Initial codebase audit |
+| [docs/MVP-PLAN.md](docs/MVP-PLAN.md) | MVP scope and completion status |
+| [docs/SETUP.md](docs/SETUP.md) | SDK, build, publish |
+| [docs/config.example.json](docs/config.example.json) | Example settings |
 | [docs/KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md) | Platform and parity limits |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Post-MVP roadmap |
+| [docs/MANUAL-TEST-CHECKLIST.md](docs/MANUAL-TEST-CHECKLIST.md) | Interactive validation on Windows |
 
-**Current status (v1.0.8):** MVP feature set on fork — ConPTY multiplexer, pane/tab attention rings, OSC + idle + CLI notifications, taskbar flash, config migration path, CI publish zip (includes `cmux-daemon.exe`), release workflow on tags with pre-publish tests. Requires **.NET 10 SDK** and **Windows** to build/run. Run `.\scripts\smoke-test.ps1` on Windows; see [docs/MANUAL-TEST-CHECKLIST.md](docs/MANUAL-TEST-CHECKLIST.md) for interactive validation.
+---
+
+## Install (release build)
+
+1. Open [Releases](https://github.com/GitDakky/cmux-windows/releases/latest) and download `cmux-windows-v1.0.8-win-x64.zip` (or the latest version).
+2. Extract the zip. You will get two folders:
+   - **`app\`** — `cmuxw.exe` (main app) and `cmux-daemon.exe` (session persistence)
+   - **`cli\`** — `cmux.exe` (automation / hooks)
+3. Run `app\cmuxw.exe`. Optionally add `cli\` to your `PATH` for `cmux notify` and workspace commands.
+4. SmartScreen may warn on unsigned binaries — use **More info → Run anyway** if you trust this build.
+
+No separate .NET runtime install is required (self-contained publish).
 
 ---
 
@@ -39,9 +68,10 @@ A dark, keyboard-first terminal multiplexer for Windows, inspired by tmux/cmux w
 - Workspace sidebar with metadata (git branch, cwd, notifications)
 - Multi-surface tabs and split-pane layout management
 - Notification ingestion (OSC 9/99/777) for coding agents
+- Idle attention when agent panes stop producing output (configurable)
 - Command logs/history with filtering and quick replay
 - Terminal transcript capture + Session Vault browsing
-- Persistent sessions (window + workspace/surface/pane state)
+- Persistent sessions via `cmux-daemon.exe` (bundled in release zip)
 - Dark desktop UI with keyboard-first navigation
 
 ---
@@ -68,6 +98,8 @@ A dark, keyboard-first terminal multiplexer for Windows, inspired by tmux/cmux w
 ### Quick verify
 
 ```powershell
+git clone https://github.com/GitDakky/cmux-windows.git
+cd cmux-windows
 .\scripts\smoke-test.ps1
 # optional: also publish artefacts
 .\scripts\smoke-test.ps1 -Publish
@@ -75,17 +107,10 @@ A dark, keyboard-first terminal multiplexer for Windows, inspired by tmux/cmux w
 
 ### Requirements
 
-- Windows 10/11
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- Windows 10 build 17763+ or Windows 11
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) (browser panes)
 - Optional: Visual Studio 2022 / Build Tools
-
-### Clone
-
-```powershell
-git clone <repo-url> cmux-windows
-cd cmux-windows
-```
 
 ### Dev run
 
@@ -94,9 +119,17 @@ dotnet build Cmux.sln -c Debug
 dotnet run --project src/Cmux/Cmux.csproj -c Debug
 ```
 
+### Publish (matches CI release layout)
+
+```powershell
+.\scripts\publish-win-x64.ps1
+```
+
+Outputs under `publish\cmux-win-x64\` (`cmuxw.exe`, `cmux-daemon.exe`) and `publish\cmux-cli-win-x64\` (`cmux.exe`), plus versioned zip `publish\cmux-windows-v{version}-win-x64.zip`.
+
 ---
 
-## Build `.exe` on Windows
+## Build `.exe` variants (advanced)
 
 ### 1) Framework-dependent `.exe` (smallest output)
 
@@ -104,51 +137,34 @@ dotnet run --project src/Cmux/Cmux.csproj -c Debug
 dotnet publish src/Cmux/Cmux.csproj -c Release -r win-x64 --self-contained false -o publish/cmux-win-x64
 ```
 
-Output:
-- `publish/cmux-win-x64/cmuxw.exe`
+Output: `publish/cmux-win-x64/cmuxw.exe` (requires .NET runtime on target machine).
 
-Use this when target machines already have .NET runtime installed.
+### 2) Self-contained folder (same as release script)
 
-### 2) Self-contained `.exe` (no runtime install needed)
+Use `.\scripts\publish-win-x64.ps1` — includes daemon and CLI.
 
-```powershell
-dotnet publish src/Cmux/Cmux.csproj -c Release -r win-x64 --self-contained true -o publish/cmux-win-x64-sc
-```
-
-Output:
-- `publish/cmux-win-x64-sc/cmuxw.exe`
-
-### 3) Single-file self-contained `.exe` (portable artifact)
+### 3) Single-file self-contained `.exe` (portable)
 
 ```powershell
-dotnet publish src/Cmux/Cmux.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -o publish/cmux-win-x64-single
+.\scripts\publish-single-file.ps1
 ```
 
-Output:
-- `publish/cmux-win-x64-single/cmuxw.exe`
+Output: `publish/cmux-win-x64-single/cmuxw.exe` (daemon not single-file; use full publish for persistence).
 
-> Note: WebView2-backed features may require WebView2 Runtime depending on target system state.
-
-### Build CLI executable
-
-```powershell
-dotnet publish src/Cmux.Cli/Cmux.Cli.csproj -c Release -r win-x64 --self-contained true -o publish/cmux-cli
-```
-
-Add `publish/cmux-cli` to `PATH` to use `cmux` globally.
+> WebView2-backed browser panes may require the [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) on the target system.
 
 ---
 
 ## First 5 minutes (how to use)
 
-1. Launch `cmuxw.exe`
+1. Launch `app\cmuxw.exe` (or dev build `cmuxw.exe`)
 2. `Ctrl+N` to create a workspace for your repo
 3. `Ctrl+T` to create additional surfaces (tabs)
 4. Split panes with `Ctrl+D` / `Ctrl+Shift+D`
 5. Open command palette with `Ctrl+Shift+P` for quick actions
 6. Open logs with `Ctrl+Shift+L`
 7. Open Session Vault with `Ctrl+Shift+V`
-8. Open settings with `Ctrl+,` and tune terminal theme/font/cursor
+8. Open settings with `Ctrl+,` and tune terminal theme/font/cursor and notification behaviour
 
 ---
 
@@ -206,7 +222,7 @@ Settings are stored as JSON:
 | `%USERPROFILE%\.cmux-windows\config.json` | **Primary** (read/write after save) |
 | `%LOCALAPPDATA%\cmux\settings.json` | Legacy (read-only fallback if user file missing) |
 
-Example: [docs/config.example.json](docs/config.example.json). Open **Settings** (`Ctrl+,`) → **Behavior** for toast/taskbar notification toggles.
+Example: [docs/config.example.json](docs/config.example.json). Open **Settings** (`Ctrl+,`) → **Behavior** for toast, taskbar flash, and idle detection.
 
 ---
 
@@ -216,18 +232,17 @@ cmux-windows detects agent attention through:
 
 1. **OSC sequences** (Claude Code, Codex, and others that emit OSC 9/99/777)
 2. **`cmux notify`** CLI (named pipe to the running app)
-3. **Process heuristics** — child processes matching `claude`, `codex`, `cursor`, etc. (sidebar labels)
+3. **Idle heuristic** — no output for a configured interval (optional agent-only filter)
+4. **Process heuristics** — child processes matching `claude`, `codex`, `cursor`, etc. (sidebar labels)
 
 ### Claude Code / Codex hooks (PowerShell)
-
-Add to your session profile or agent hook script:
 
 ```powershell
 # Notify cmux when a script needs attention (cmux CLI on PATH)
 cmux notify --title "Claude Code" --body "Waiting for your input"
 ```
 
-Ensure the cmux app is running and `cmux.exe` is on `PATH` (publish CLI — see Build `.exe` on Windows).
+Ensure the cmux app is running and `cmux.exe` from the release `cli\` folder is on `PATH`.
 
 Optional installer for PowerShell hook helpers:
 
@@ -238,7 +253,8 @@ Optional installer for PowerShell hook helpers:
 
 ### In-app behaviour
 
-- Unread badges on workspace sidebar and notification panel (`Ctrl+I`)
+- Unread badges on workspace sidebar, surfaces, and panes
+- Notification panel (`Ctrl+I`)
 - `Ctrl+Shift+U` — jump to latest unread
 - Optional **Windows toast** and **taskbar flash** when cmux is in the background (Settings → Behavior)
 
@@ -247,22 +263,17 @@ Optional installer for PowerShell hook helpers:
 ## CLI usage
 
 ```powershell
-# Send a notification (e.g., from agent hooks)
 cmux notify --title "Claude Code" --body "Waiting for input"
-
-# Workspace management
 cmux workspace list
 cmux workspace create --name "My Project"
 cmux workspace select --index 0
-
-# Surface/pane actions
 cmux surface create
 cmux split right
 cmux split down
-
-# Inspect status
 cmux status
 ```
+
+Pipe endpoint: `\\.\pipe\cmux` (Windows named pipe; not compatible with macOS cmux Unix sockets).
 
 ---
 
@@ -273,9 +284,18 @@ src/
   Cmux/         WPF desktop app (views, controls, themes)
   Cmux.Core/    terminal engine, models, services, persistence, IPC
   Cmux.Cli/     command-line client for automation
+  Cmux.Daemon/  background session persistence (cmux-daemon.exe)
 tests/
   Cmux.Tests/   unit tests
 ```
+
+---
+
+## Contributing
+
+Issues and pull requests: https://github.com/GitDakky/cmux-windows/issues
+
+For upstream comparison or merging fixes back to [mkurman/cmux-windows](https://github.com/mkurman/cmux-windows), see [docs/AUDIT-INITIAL.md](docs/AUDIT-INITIAL.md).
 
 ---
 
